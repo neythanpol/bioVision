@@ -7,17 +7,15 @@ security:
         app_user_provider:
             entity:
                 class: App\Entity\Usuario
-                property: username
+                property: 'username'
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
         main:
-            pattern: ^/
             lazy: true
             provider: app_user_provider
-            custom_authenticators:
-                - App\Security\AppAuthenticator
+            custom_authenticator: App\Security\AppAuthenticator
             logout:
                 path: app_logout
                 target: app_home
@@ -26,7 +24,6 @@ security:
                 lifetime: 604800
                 path: /
                 domain: ~
-            entry_point: App\Security\AppAuthenticator
                 # where to redirect after logout
                 # target: app_any_route
 

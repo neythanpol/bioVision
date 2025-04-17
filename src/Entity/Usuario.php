@@ -36,7 +36,7 @@ class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $updated = null;
 
-    #[ORM\Column]
+    #[ORM\Column(name: "is_verified", type: "boolean", options: ["default" => false])]
     private bool $isVerified = false;
 
     public function getId(): ?int

@@ -4,10 +4,37 @@
 
 {% block body %}
     <h1>Bienvenido a BioVision</h1>
-    <p>¡Gracias por unirte a nuestra comunidad!</p>
+
+    {# Mensaje para usuarios no verificados #}
+    {% if unverified_warning|default(false) %}
+        <div class="alert alert-warning">
+            Por favor verifica tu email para acceder a todas las funciones.
+            <a href="{{ path('app_logout') }}" class="btn btn-sm btn-outline-danger ml-2">Cerrar sesión</a>
+        </div>
+    {% endif %}
+
+    {# Contenido para invitados #}
+    {% if show_auth_links|default(true) %}
+        <p>¡Gracias por unirte a nuestra comunidad!</p>
+        <div class="auth-links">
+            <a href="{{ path('app_login') }}" class"btn btn-primary">Iniciar sesión</a>
+            <a href="{{ path('app_register') }}" class="btn btn-secondary">Registrarse</a>
+        </div>
+    {% endif %}
+
+    {# Contenido para usuarios autenticaos #}
     {% if app.user %}
-        <p>Has iniciado sesión como: {{ app.user.username }}</p>
-    {% else %}
-        <p>Por favor, <a href="{{ path('app_login') }}">inicia sesión</a> o <a href="{{ path('app_register') }}">regístrate</a>.</p>
+        <p>Has iniciado sesión como: <strong>{{ app.user.username }}</strong></p>
+    {% endif %}
+
+    {# Sección del dashboard (solo para verificados) #}
+    {% if dashboard_mode|default(false) %}
+        <div class="dashboard-section" style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;">
+            <h2>Tu Panel</h2>
+            <div class="placeholder">
+                <p>Carrusel de fotos (próximamente)</p>
+                <p>Mapa interactivo (próximamente)</p>
+            </div>
+        </div>
     {% endif %}
 {% endblock %}

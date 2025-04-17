@@ -1,0 +1,23 @@
+app_ave_index:
+    path: /ave
+    controller: App\Controller\AveController::index
+    methods: [GET]
+
+app_ave_new:
+    path: /ave/nuevo
+    controller: App\Controller\AveController::new
+    methods: [GET, POST]
+
+app_ave_edit:
+    path: /ave/{id}/editar
+    controller: App\Controller\AveController::edit
+    methods: [GET, POST]
+    requirements:
+        id: '\d+'
+
+app_ave_delete:
+    path: /ave/{id}/eliminar
+    controller: App\Controller\AveController::delete
+    methods: [POST]
+    requirements:
+        id: '\d+'
