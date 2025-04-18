@@ -31,6 +31,15 @@
                                     {{ ave.familia }} ({{ ave.orden }})
                                 </small>
                             </p>
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    {% if ave.estadoConservacion %}
+                                        {{ ave.estadoConservacion.codigo }} - {{ ave.estadoConservacion.nombre }}
+                                    {% else %}
+                                        Estado no asignado
+                                    {% endif %}
+                                </small>
+                            </p>
                         </div>
                     </div>
                 </div>

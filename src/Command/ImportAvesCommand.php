@@ -3,6 +3,7 @@
 namespace App\Command;
 
 use App\Entity\Ave;
+use App\Entity\EstadoConservacion;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -12,13 +13,13 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'app:import-aves',
-    description: 'Importa datos iniciales de aves a la base de datos'
+    description: 'Importa aves a la base de datos'
 )]
-
 class ImportAvesCommand extends Command
 {
-    public function __construct(private EntityManagerInterface $entityManager)
-    {
+    public function __construct(
+        private EntityManagerInterface $entityManager
+    ){
         parent::__construct();
     }
 
@@ -38,6 +39,7 @@ class ImportAvesCommand extends Command
                 'longitudMaxima' => 29.0,
                 'envergaduraMinima' => 44.0,
                 'envergaduraMaxima' => 49.0,
+                'estadoCodigo' => 'LC',
                 'imagen' => 'abejaruco_europeo.jpg'
             ],
             [
@@ -50,6 +52,7 @@ class ImportAvesCommand extends Command
                 'longitudMaxima' => 14.0,
                 'envergaduraMinima' => 19.0,
                 'envergaduraMaxima' => 21.0,
+                'estadoCodigo' => 'LC',
                 'imagen' => 'acentor_comun.jpg'
             ]
         ];
@@ -66,6 +69,15 @@ class ImportAvesCommand extends Command
             $ave->setEnvergaduraMinima($aveData['envergaduraMinima']);
             $ave->setEnvergaduraMaxima($aveData['envergaduraMaxima']);
             $ave->setImagenNombre($aveData['imagen']);
+
+            // Asignar estado de conservación
+            $estado = $this->entityManager
+                ->getRepository(EstadoConservacion::class)
+                ->findOneBy(['codigo' => $aveData['estadoCodigo']]);
+
+            if ($estado) {
+                $ave->setEstadoConservacion($estado);
+            }
 
             $this->entityManager->persist($ave);
             $io->text('Añadido: ' . $aveData['nombreComun']);

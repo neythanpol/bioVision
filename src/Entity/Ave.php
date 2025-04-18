@@ -44,6 +44,10 @@ class Ave
     #[ORM\Column(name: 'imagen_nombre', length: 255, nullable: true)]
     private ?string $imagenNombre = null;
 
+    #[ORM\ManyToOne(targetEntity: EstadoConservacion::class)]
+    #[ORM\JoinColumn(name: 'estado_conservacion_id', nullable: true)]
+    private ?EstadoConservacion $estadoConservacion = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -171,5 +175,16 @@ class Ave
     public function getImagenUrl(): ?string
     {
         return $this->imagenNombre ? '/images/aves/' . $this -> imagenNombre : null;
+    }
+
+    public function getEstadoConservacion(): ?EstadoConservacion
+    {
+        return $this->estadoConservacion;
+    }
+
+    public function setEstadoConservacion(?EstadoConservacion $estado): self
+    {
+        $this->estadoConservacion = $estado;
+        return $this;
     }
 }
