@@ -54,9 +54,13 @@ class Ave
     #[ORM\JoinTable(name: 'ave_provincia')]
     private Collection $provincias;
 
+    #[ORM\OneToMany(mappedBy: 'ave', targetEntity: AveProvinciaPeriodo::class)]
+    private Collection $aveProvinciaPeriodos;
+
     public function __construct()
     {
         $this->provincias = new ArrayCollection();
+        $this->aveProvinciaPeriodos = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -219,5 +223,13 @@ class Ave
     {
         $this->provincias->removeElement($provincia);
         return $this;
+    }
+
+    /**
+     * @return Collection<int, AveProvinciaPeriodo>
+     */
+    public function getAveProvinciaPeriodos(): Collection
+    {
+        return $this->aveProvinciaPeriodos;
     }
 }
