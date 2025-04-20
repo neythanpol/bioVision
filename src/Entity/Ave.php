@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\AveRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -47,6 +49,15 @@ class Ave
     #[ORM\ManyToOne(targetEntity: EstadoConservacion::class)]
     #[ORM\JoinColumn(name: 'estado_conservacion_id', nullable: true)]
     private ?EstadoConservacion $estadoConservacion = null;
+
+    #[ORM\ManyToMany(targetEntity: Provincia::class, inversedBy: 'aves')]
+    #[ORM\JoinTable(name: 'ave_provincia')]
+    private Collection $provincias;
+
+    public function __construct()
+    {
+        $this->provincias = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -185,6 +196,28 @@ class Ave
     public function setEstadoConservacion(?EstadoConservacion $estado): self
     {
         $this->estadoConservacion = $estado;
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Provincia>
+     */
+    public function getProvincias(): Collection
+    {
+        return $this->provincias;
+    }
+
+    public function addProvincia(Provincia $provincia): self
+    {
+        if (!$this->provincias->contains($provincia)) {
+            $this->provincias->add($provincia);
+        }
+        return $this;
+    }
+
+    public function removeProvincia(Provincia $provincia): self
+    {
+        $this->provincias->removeElement($provincia);
         return $this;
     }
 }
