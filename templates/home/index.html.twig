@@ -33,7 +33,12 @@
             <h2>Tu Panel</h2>
             <div class="placeholder">
                 <p>Carrusel de fotos (próximamente)</p>
-                <p>Mapa interactivo (próximamente)</p>
+                <section class="map-preview">
+                    <p>Mapa interactivo (próximamente)</p>
+                    <a href="{{ path('app_mapa_aves') }}">
+                        <img src="{{ asset('images/mapa-preview.jpg') }}" alt="Mapa de aves" class="img-fluid">
+                    </a>
+                </section>
             </div>
         </div>
     {% endif %}

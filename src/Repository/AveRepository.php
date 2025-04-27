@@ -40,4 +40,16 @@ class AveRepository extends ServiceEntityRepository
     //            ->getOneOrNullResult()
     //        ;
     //    }
+
+    /*
+    public function findByProvince(string $province): array
+    {
+        return $this->createQueryBuilder('a')
+            ->innerJoin('a.provincias', 'p')
+            ->where('p.nombre = :province')
+            ->setParameter('province', $province)
+            -getQuery()
+            ->getResult();
+    }
+            */
 }

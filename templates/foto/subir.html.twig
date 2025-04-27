@@ -1,0 +1,152 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Subir foto de {{ ave.nombreComun }}{% endblock %}
+
+{% block content %}
+    <div class="container my-5">
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h1 class="h4 mb-0">
+                            <i class="fas fa-camera me-2"></i>
+                            Subir foto de {{ ave.nombreComun }}
+                            <small class="d-block text-white-50">{{ ave.nombreCientifico }}</small>
+                        </h1>
+                    </div>
+
+                    <div class="card-body">
+                        {{ form_start(from, {'attr': {'class': 'dropzone', 'id': 'photo-upload-form'}}) }}
+                            <div class="mb-4">
+                                <div class="text-center border-2 border-dashed rounded p-4 mb-3" id="dropzone">
+                                    <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                                    <p class="mb-1">Arrastra tu foto aquí o haz clic para seleccionar</p>
+                                    <p class="small text-muted">Formatos: JPG, PNG o WEBP (Máx. 5MB)</p>
+                                    {{ form_widget(form.archivo, {'attr': {'class': 'd-none'}}) }}
+                                </div>
+                                <div id="preview" class="text-center mb-3 d-none">
+                                    <img id="image-preview" src="#" alt="Previsualización" class="img-fluid rounded" style="max-height: 300px;">
+                                </div>
+                            </div>
+                        
+                            <div class="mb-3">
+                                {{ form_label(form.descripcion, 'Descripción (opcional)', {'label_attr': {'class': 'form-label'}}) }}
+                                {{ form_widget(form.descripcion, {'attr': {'class': 'form-control','rows': 3,'placeholder': 'Ej: "Ejemplar macho fotografiado en el Parque Nacional de Doñana en primavera..."'}}) }}
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-upload me-2"></i> Subir foto
+                                </button>
+                                <a href="{{ path('app_ave_detalle', {'id': ave.id}) }}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times me-2"></i> Cancelar
+                                </a>
+                            </div>
+                        {{ form_end(form) }}
+                    </div>
+                </div>
+
+                {% if fotos_existentes|length > 0 %}
+                    <div class="mt-5">
+                        <h3 class="h5 mb-3">Fotos existentes de {{ ave.nombreComun }}</h3>
+                        <div class="row g-3">
+                            {% for foto in fotos_existentes %}
+                            <div class="col-6 col-md-4">
+                                <a href="{{ path('app_foto_detalle', {'id': foto.id}) }}" class="text-decoration-none">
+                                    <div class="card h-100">
+                                        <img src="{{ asset(foto.getUrlRelativa()) }}" 
+                                            class="card-img-top" 
+                                            alt="{{ ave.nombreComun }}"
+                                            style="height: 120px; object-fit: cover;">
+                                        <div class="card-body p-2">
+                                            <small class="text-muted">
+                                                Subida por {{ foto.usuario.username }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('{{ form.archivo.vars.id }}');
+        const preview = document.getElementById('preview');
+        const imagePreview = document.getElementById('image-preview');
+        
+        // Handle click on dropzone
+        dropzone.addEventListener('click', () => fileInput.click());
+        
+        // Handle file selection
+        fileInput.addEventListener('change', function(e) {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    imagePreview.src = e.target.result;
+                    preview.classList.remove('d-none');
+                    dropzone.classList.add('d-none');
+                }
+                
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+        
+        // Drag and drop functionality
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropzone.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropzone.addEventListener(eventName, highlight, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropzone.addEventListener(eventName, unhighlight, false);
+        });
+        
+        function highlight() {
+            dropzone.classList.add('border-primary', 'bg-light');
+        }
+        
+        function unhighlight() {
+            dropzone.classList.remove('border-primary', 'bg-light');
+        }
+        
+        dropzone.addEventListener('drop', handleDrop, false);
+        
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            fileInput.files = files;
+            
+            if (files && files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    imagePreview.src = e.target.result;
+                    preview.classList.remove('d-none');
+                    dropzone.classList.add('d-none');
+                }
+                
+                reader.readAsDataURL(files[0]);
+            }
+        }
+    });
+    </script>
+{% endblock %}

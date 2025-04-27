@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\UsuarioRepository;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
@@ -38,6 +39,9 @@ class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(name: "is_verified", type: "boolean", options: ["default" => false])]
     private bool $isVerified = false;
+
+    #[ORM\OneToMany(mappedBy: 'usuario', targetEntity: Foto::class)]
+    private Collection $fotos;
 
     public function getId(): ?int
     {
@@ -155,5 +159,10 @@ class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
         $this->isVerified = $isVerified;
 
         return $this;
+    }
+
+    public function getFotos(): Collection
+    {
+        return $this->fotos;
     }
 }

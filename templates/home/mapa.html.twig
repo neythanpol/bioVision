@@ -1,0 +1,162 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mapa de Aves por Provincia{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        #map { 
+            height: 600px;
+            width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .bird-card {
+            margin-bottom: 10px;
+        }
+        .bird-image {
+            max-width: 100px;
+            max-height: 100px;
+            object-fit: cover;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h1 class="mb-4">Mapa de Distribución de Aves</h1>
+    
+    <div id="map"></div>
+    
+    <div class="card">
+        <div class="card-body">
+            <h4 id="province-name" class="card-title">Selecciona una provincia en el mapa</h4>
+            <div id="birds" class="mt-3"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 1. Inicializar mapa
+            const map = L.map('map').setView([40.0, -4.0], 6);
+            
+            // 2. Añadir capa base
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            }).addTo(map);
+            
+            // 3. Cargar y mostrar provincias
+            fetch("{{ asset('map/spain-provinces.geojson') }}")
+                .then(response => response.json())
+                .then(geojsonData => {
+                    // Estilo para las provincias
+                    const provinceStyle = {
+                        fillColor: '#f8f9fa',
+                        weight: 1,
+                        opacity: 1,
+                        color: '#6c757d',
+                        fillOpacity: 0.7
+                    };
+                    
+                    // Resaltado al pasar el ratón
+                    const highlightStyle = {
+                        weight: 3,
+                        color: '#0d6efd',
+                        fillOpacity: 0.7
+                    };
+                    
+                    // Añadir provincias al mapa
+                    const provinces = L.geoJSON(geojsonData, {
+                        style: provinceStyle,
+                        onEachFeature: function(feature, layer) {
+                            // Resaltar al pasar el ratón
+                            layer.on({
+                                mouseover: function(e) {
+                                    layer.setStyle(highlightStyle);
+                                },
+                                mouseout: function(e) {
+                                    provinces.resetStyle(layer);
+                                },
+                                click: function(e) {
+                                    const provinceName = feature.properties.name;
+                                    loadBirdsForProvince(provinceName);
+                                }
+                            });
+                        }
+                    }).addTo(map);
+                    
+                    // Ajustar el zoom al área de España
+                    map.fitBounds(provinces.getBounds());
+                })
+                .catch(error => {
+                    console.error('Error cargando el GeoJSON:', error);
+                    alert('Error al cargar el mapa de provincias');
+                });
+            
+            // Función para cargar aves por provincia
+            function loadBirdsForProvince(provinceName) {
+                document.getElementById('province-name').textContent = `Aves en ${provinceName}`;
+                
+                fetch(`/aves-por-provincia?provincia=${encodeURIComponent(provinceName)}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Error en la respuesta del servidor');
+                        }
+                        return response.json();
+                    })
+                    .then(aves => {
+                        const birdsContainer = document.getElementById('birds');
+                        birdsContainer.innerHTML = '';
+                        
+                        if (aves.length === 0) {
+                            birdsContainer.innerHTML = `
+                                <div class="alert alert-info">
+                                    No hay aves registradas en esta provincia
+                                </div>
+                            `;
+                        } else {
+                            aves.forEach(ave => {
+                                const birdCard = document.createElement('div');
+                                birdCard.className = 'bird-card card';
+                                birdCard.innerHTML = `
+                                    <div class="card-body">
+                                        <div class="row align-items-center">
+                                            <div class="col-md-3 text-center">
+                                                ${ave.imagen ? `
+                                                    <img src="${ave.imagen}" 
+                                                         class="bird-image img-thumbnail" 
+                                                         alt="${ave.nombreComun}">
+                                                ` : ''}
+                                            </div>
+                                            <div class="col-md-9">
+                                                <h5 class="card-title">${ave.nombreComun}</h5>
+                                                <p class="card-text text-muted">
+                                                    <em>${ave.nombreCientifico}</em>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                                birdsContainer.appendChild(birdCard);
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        document.getElementById('birds').innerHTML = `
+                            <div class="alert alert-danger">
+                                Error al cargar las aves: ${error.message}
+                            </div>
+                        `;
+                    });
+            }
+        });
+    </script>
+{% endblock %}

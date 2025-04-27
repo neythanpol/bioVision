@@ -57,10 +57,14 @@ class Ave
     #[ORM\OneToMany(mappedBy: 'ave', targetEntity: AveProvinciaPeriodo::class)]
     private Collection $aveProvinciaPeriodos;
 
+    #[ORM\OneToMany(mappedBy: 'ave', targetEntity: Foto::class)]
+    private Collection $fotos;
+
     public function __construct()
     {
         $this->provincias = new ArrayCollection();
         $this->aveProvinciaPeriodos = new ArrayCollection();
+        $this->fotos = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -231,5 +235,13 @@ class Ave
     public function getAveProvinciaPeriodos(): Collection
     {
         return $this->aveProvinciaPeriodos;
+    }
+
+    /**
+     * @return Collection<int, Foto>
+     */
+    public function getFotos(): Collection
+    {
+        return $this->fotos;
     }
 }

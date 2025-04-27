@@ -1,0 +1,19 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+    <div class="foto-detalle">
+        <img src="{{ asset(foto.getUrlRelativa()) }}" alt="Foto de {{ foto.ave.nombreComun }}">
+
+        <div class="metadata">
+            <h2>{{ foto.ave.nombreComun }}</h2>
+            <p>Subida por: {{ foto.usuario.nombre }}</p>
+            <p>Fecha: {{ foto.fechaSubida|date('d/m/Y') }}</p>
+
+            {% if foto.descripcion %}
+                <div class="descripcion">
+                    {{ foto.descripcion }}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
