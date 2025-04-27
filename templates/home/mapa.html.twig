@@ -21,6 +21,17 @@
             max-height: 100px;
             object-fit: cover;
         }
+        .filter-sidebar {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+        }
+        .period-filter.active {
+            background-color: #0d6efd;
+            color: white;
+            border-color: #0d6efd;
+        }
     </style>
 {% endblock %}
 
@@ -28,12 +39,50 @@
 <div class="container mt-4">
     <h1 class="mb-4">Mapa de Distribución de Aves</h1>
     
-    <div id="map"></div>
-    
-    <div class="card">
-        <div class="card-body">
-            <h4 id="province-name" class="card-title">Selecciona una provincia en el mapa</h4>
-            <div id="birds" class="mt-3"></div>
+    <div class="row">
+        <!-- Filtro lateral -->
+        <div class="col-md-3">
+            <div class="filter-sidebar">
+                <h4 class="mb-3">Filtros</h4>
+                
+                <div class="mb-4">
+                    <h5 class="h6">Periodo anual</h5>
+                    <div class="list-group">
+                        <button type="button" 
+                                class="list-group-item list-group-item-action period-filter active" 
+                                data-period="all">
+                            Todos los periodos
+                        </button>
+                        <button type="button" 
+                                class="list-group-item list-group-item-action period-filter" 
+                                data-period="residente">
+                            Residente (todo el año)
+                        </button>
+                        <button type="button" 
+                                class="list-group-item list-group-item-action period-filter" 
+                                data-period="invernante">
+                            Invernante (nov-mar)
+                        </button>
+                        <button type="button" 
+                                class="list-group-item list-group-item-action period-filter" 
+                                data-period="estival">
+                            Estival (jun-sep)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mapa y resultados -->
+        <div class="col-md-9">
+            <div id="map"></div>
+            
+            <div id="bird-list" class="card mt-3">
+                <div class="card-body">
+                    <h4 id="province-name" class="card-title">Selecciona una provincia en el mapa</h4>
+                    <div id="birds" class="mt-3"></div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -44,6 +93,10 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Variables globales
+            let currentPeriod = 'all';
+            let currentProvince = null;
+            
             // 1. Inicializar mapa
             const map = L.map('map').setView([40.0, -4.0], 6);
             
@@ -53,7 +106,7 @@
             }).addTo(map);
             
             // 3. Cargar y mostrar provincias
-            fetch("{{ asset('map/spain-provinces.geojson') }}")
+            fetch("{{ asset('map/spain-provinces.geojson') }}?v={{ 'now'|date('YmdHis') }}")
                 .then(response => response.json())
                 .then(geojsonData => {
                     // Estilo para las provincias
@@ -85,8 +138,9 @@
                                     provinces.resetStyle(layer);
                                 },
                                 click: function(e) {
-                                    const provinceName = feature.properties.name;
-                                    loadBirdsForProvince(provinceName);
+                                    currentProvince = feature.properties.name;
+                                    document.getElementById('province-name').textContent = `Aves en ${currentProvince}`;
+                                    loadBirdsForProvince();
                                 }
                             });
                         }
@@ -101,10 +155,10 @@
                 });
             
             // Función para cargar aves por provincia
-            function loadBirdsForProvince(provinceName) {
-                document.getElementById('province-name').textContent = `Aves en ${provinceName}`;
+            function loadBirdsForProvince() {
+                if (!currentProvince) return;
                 
-                fetch(`/aves-por-provincia?provincia=${encodeURIComponent(provinceName)}`)
+                fetch(`/aves-por-provincia?provincia=${encodeURIComponent(currentProvince)}&periodo=${currentPeriod}`)
                     .then(response => {
                         if (!response.ok) {
                             throw new Error('Error en la respuesta del servidor');
@@ -118,13 +172,13 @@
                         if (aves.length === 0) {
                             birdsContainer.innerHTML = `
                                 <div class="alert alert-info">
-                                    No hay aves registradas en esta provincia
+                                    No hay aves registradas en esta provincia para el periodo seleccionado
                                 </div>
                             `;
                         } else {
                             aves.forEach(ave => {
                                 const birdCard = document.createElement('div');
-                                birdCard.className = 'bird-card card';
+                                birdCard.className = 'bird-card card mb-3';
                                 birdCard.innerHTML = `
                                     <div class="card-body">
                                         <div class="row align-items-center">
@@ -157,6 +211,25 @@
                         `;
                     });
             }
+            
+            // Eventos para los botones de filtro
+            document.querySelectorAll('.period-filter').forEach(button => {
+                button.addEventListener('click', function() {
+                    // Remover clase active de todos los botones
+                    document.querySelectorAll('.period-filter').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    
+                    // Añadir active al botón clickeado
+                    this.classList.add('active');
+                    currentPeriod = this.dataset.period;
+                    
+                    // Recargar aves si hay una provincia seleccionada
+                    if (currentProvince) {
+                        loadBirdsForProvince();
+                    }
+                });
+            });
         });
     </script>
 {% endblock %}

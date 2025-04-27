@@ -3,8 +3,6 @@
 namespace App\Controller;
 
 use App\Entity\Ave;
-use App\Entity\Provincia;
-use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -17,13 +15,11 @@ final class HomeController extends AbstractController
     #[Route('/', name: 'app_home')]
     public function index(): Response
     {
-        $user = $this -> getUser();
+        $user = $this->getUser();
 
         // Usuario no autenticado
         if (!$user) {
-            // Si el usuario no está autenticado, redirigir a la página de inicio de sesión
-            // o mostrar enlaces de autenticación
-            return $this -> render('home/index.html.twig', [
+            return $this->render('home/index.html.twig', [
                 'show_auth_links' => true
             ]);
         }
@@ -34,15 +30,15 @@ final class HomeController extends AbstractController
         }
 
         // Usuario autenticado pero no verificado
-        if (!$user -> isVerified()) {
-            return $this -> render('home/index.html.twig', [
+        if (!$user->isVerified()) {
+            return $this->render('home/index.html.twig', [
                 'show_auth_links' => false,
                 'unverified_warning' => true
             ]);
         }
 
         // Usuario verificado - Versión dashboard
-        return $this -> render('home/index.html.twig', [
+        return $this->render('home/index.html.twig', [
             'show_auth_links' => false,
             'dashboard_mode' => true
         ]);
@@ -51,21 +47,29 @@ final class HomeController extends AbstractController
     #[Route('/mapa-aves', name: 'app_mapa_aves')]
     public function mapaAves(): Response
     {
-        return $this -> render('home/mapa.html.twig');
+        return $this->render('home/mapa.html.twig');
     }
 
     #[Route('/aves-por-provincia', name: 'api_aves_provincia')]
-    public function avesPorProvincia(Request $request, EntityManagerInterface $entityManager): JsonResponse
+    public function avesPorProvincia(Request $request, EntityManagerInterface $em): JsonResponse
     {
         $provinciaNombre = $request->query->get('provincia');
+        $periodo = $request->query->get('periodo', 'all');
 
-        $aves = $entityManager->getRepository(Ave::class)
+        $query = $em->getRepository(Ave::class)
             ->createQueryBuilder('a')
             ->join('a.aveProvinciaPeriodos', 'app')
             ->join('app.provincia', 'p')
+            ->join('app.periodo', 'periodo')
             ->where('p.nombre = :provincia')
-            ->setParameter('provincia', $provinciaNombre)
-            ->groupBy('a.id')
+            ->setParameter('provincia', $provinciaNombre);
+
+        if ($periodo !== 'all') {
+            $query->andWhere('periodo.tipo = :periodo')
+                ->setParameter('periodo', $periodo);
+        }
+
+        $aves = $query->groupBy('a.id')
             ->getQuery()
             ->getResult();
 
@@ -76,6 +80,7 @@ final class HomeController extends AbstractController
                 'imagen' => $ave->getImagenUrl()
             ];
         }, $aves);
+
         return $this->json($data);
     }
 }
