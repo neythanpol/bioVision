@@ -1,0 +1,169 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Subir Foto | BioVision{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .dropzone {
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            background: #f8f9fa;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .dropzone:hover {
+            border-color: #0d6efd;
+            background: #e9f0ff;
+        }
+        #image-preview {
+            max-height: 300px;
+            border: 1px solid #dee2e6;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h4 mb-0"><i class="fas fa-camera me-2"></i>Subir Nueva Foto</h2>
+                </div>
+                <div class="card-body">
+                    {{ form_start(form) }}
+                    
+                    <div class="mb-4">
+                        <div class="dropzone text-center p-4 mb-3" id="dropzone">
+                            <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                            <p class="mb-1">Arrastra tu foto aquí o haz clic para seleccionar</p>
+                            <p class="small text-muted">Formatos: JPG, PNG o WEBP (Máx. 5MB)</p>
+                            {{ form_widget(form.archivo, {'attr': {'class': 'd-none'}}) }}
+                        </div>
+                        <div id="preview" class="text-center mb-3 d-none">
+                            <img id="image-preview" src="#" alt="Previsualización" class="img-fluid rounded">
+                            <button type="button" id="change-photo" class="btn btn-sm btn-outline-secondary mt-2">
+                                <i class="fas fa-sync-alt me-1"></i> Cambiar foto
+                            </button>
+                        </div>
+                        {{ form_errors(form.archivo) }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form_label(form.ave) }}
+                        {{ form_widget(form.ave, {'attr': {'class': 'form-select'}}) }}
+                        {{ form_errors(form.ave) }}
+                    </div>
+                    
+                    <div class="mb-4">
+                        {{ form_label(form.descripcion) }}
+                        {{ form_widget(form.descripcion, {'attr': {'class': 'form-control', 'rows': 3}}) }}
+                        {{ form_errors(form.descripcion) }}
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ path('app_mi_perfil') }}" class="btn btn-outline-secondary me-md-2">
+                            <i class="fas fa-times me-1"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-upload me-1"></i> Subir Foto
+                        </button>
+                    </div>
+                    
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const dropzone = document.getElementById('dropzone');
+            const fileInput = document.querySelector('input[type="file"]');
+            const preview = document.getElementById('preview');
+            const imagePreview = document.getElementById('image-preview');
+            const changePhotoBtn = document.getElementById('change-photo');
+
+            // Click en el dropzone
+            dropzone.addEventListener('click', function(e) {
+                // Solo activar si se hace click directamente en el dropzone
+                if (e.target === dropzone || e.target.classList.contains('fa-cloud-upload-alt')) {
+                    fileInput.click();
+                }
+            });
+
+            // Cambiar foto
+            if(changePhotoBtn) {
+                changePhotoBtn.addEventListener('click', function() {
+                    preview.classList.add('d-none');
+                    dropzone.classList.remove('d-none');
+                    fileInput.value = '';
+                });
+            }
+
+            // Mostrar preview
+            fileInput.addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    // Validar tamaño antes de mostrar
+                    if (this.files[0].size > 5 * 1024 * 1024) {
+                        alert('El archivo es demasiado grande. Máximo 5MB');
+                        return;
+                    }
+
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        imagePreview.src = e.target.result;
+                        preview.classList.remove('d-none');
+                        dropzone.classList.add('d-none');
+                    }
+                    reader.readAsDataURL(this.files[0]);
+                }
+            });
+
+            // Drag & drop
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropzone.addEventListener(eventName, preventDefaults, false);
+                document.body.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropzone.addEventListener(eventName, highlight, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropzone.addEventListener(eventName, unhighlight, false);
+            });
+
+            function highlight() {
+                dropzone.classList.add('border-primary', 'bg-light');
+            }
+
+            function unhighlight() {
+                dropzone.classList.remove('border-primary', 'bg-light');
+            }
+
+            // Manejar archivos soltados
+            dropzone.addEventListener('drop', function(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                
+                if (files.length > 0) {
+                    fileInput.files = files;
+                    const event = new Event('change');
+                    fileInput.dispatchEvent(event);
+                }
+            });
+        });
+    </script>
+{% endblock %}

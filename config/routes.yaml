@@ -3,3 +3,11 @@ controllers:
         path: ../src/Controller/
         namespace: App\Controller
     type: attribute
+
+app_mi_perfil:
+    path: /mi-perfil
+    controller: App\Controller\UserController::miPerfil
+
+app_subir_foto:
+    path: /subir-foto
+    controller: App\Controller\UserController::subirFoto

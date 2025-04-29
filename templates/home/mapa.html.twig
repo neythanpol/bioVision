@@ -1,72 +1,170 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Mapa de Aves por Provincia{% endblock %}
+{% block title %}Mapa de Aves por Provincia | BioVision{% endblock %}
 
 {% block stylesheets %}
     {{ parent() }}
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <style>
-        #map { 
+        /* Estilos del mapa */
+        #map {
             height: 600px;
             width: 100%;
-            border: 1px solid #ddd;
+            border: 1px solid #dee2e6;
             border-radius: 8px;
             margin-bottom: 20px;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
         }
-        .bird-card {
-            margin-bottom: 10px;
+        
+        /* Barra de navegación personalizada */
+        .navbar-custom {
+            background-color: #2c3e50;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        .bird-image {
-            max-width: 100px;
-            max-height: 100px;
-            object-fit: cover;
+        .navbar-custom .navbar-brand {
+            color: #ecf0f1;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
         }
+        .navbar-custom .navbar-brand i {
+            margin-right: 10px;
+        }
+        .navbar-custom .nav-link {
+            color: #bdc3c7;
+            transition: all 0.3s;
+        }
+        .navbar-custom .nav-link:hover {
+            color: #ecf0f1;
+            transform: translateY(-2px);
+        }
+        .navbar-custom .active {
+            color: #18bc9c !important;
+            font-weight: 500;
+        }
+        
+        /* Sidebar de filtros */
         .filter-sidebar {
             background: #f8f9fa;
             border-radius: 8px;
             padding: 20px;
             box-shadow: 0 0 10px rgba(0,0,0,0.05);
+            height: 100%;
         }
-        .period-filter.active {
-            background-color: #0d6efd;
-            color: white;
-            border-color: #0d6efd;
+        
+        /* Tarjetas de aves */
+        .bird-card {
+            transition: all 0.3s;
+            border: none;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+        .bird-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+        .bird-image {
+            width: 100%;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+        
+        /* Responsividad */
+        @media (max-width: 768px) {
+            .filter-sidebar {
+                margin-bottom: 20px;
+            }
         }
     </style>
 {% endblock %}
 
 {% block body %}
-<div class="container mt-4">
-    <h1 class="mb-4">Mapa de Distribución de Aves</h1>
+<!-- Barra de navegación mejorada -->
+<nav class="navbar navbar-expand-lg navbar-dark navbar-custom mb-4">
+    <div class="container">
+        <a class="navbar-brand" href="{{ path('app_home') }}">
+            <i class="fas fa-dove"></i>
+            BioVision
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ path('app_home') }}"><i class="fas fa-home me-1"></i> Inicio</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="{{ path('app_mapa_aves') }}"><i class="fas fa-map-marked-alt me-1"></i> Mapa</a>
+                </li>
+                {% if app.user %}
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle me-1"></i> {{ app.user.username }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{{ path('app_mi_perfil') }}"><i class="fas fa-user me-2"></i> Mi Perfil</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{{ path('app_logout') }}"><i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión</a></li>
+                    </ul>
+                </li>
+                {% else %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ path('app_login') }}"><i class="fas fa-sign-in-alt me-1"></i> Ingresar</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ path('app_register') }}"><i class="fas fa-user-plus me-1"></i> Registrarse</a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Contenido principal -->
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-5 fw-bold text-primary">
+                <i class="fas fa-map-marked-alt me-2"></i>Mapa de Distribución de Aves
+            </h1>
+            <p class="lead text-muted">
+                Explora las aves por provincia y periodo del año
+            </p>
+        </div>
+    </div>
     
     <div class="row">
-        <!-- Filtro lateral -->
-        <div class="col-md-3">
-            <div class="filter-sidebar">
-                <h4 class="mb-3">Filtros</h4>
+        <!-- Sidebar de filtros -->
+        <div class="col-lg-3">
+            <div class="filter-sidebar sticky-top" style="top: 20px;">
+                <h4 class="mb-3 text-center"><i class="fas fa-filter me-2"></i>Filtros</h4>
                 
                 <div class="mb-4">
-                    <h5 class="h6">Periodo anual</h5>
+                    <h5 class="h6 text-muted"><i class="fas fa-calendar-alt me-1"></i> Periodo anual</h5>
                     <div class="list-group">
                         <button type="button" 
                                 class="list-group-item list-group-item-action period-filter active" 
                                 data-period="all">
-                            Todos los periodos
+                            <i class="fas fa-globe me-2"></i>Todos los periodos
                         </button>
                         <button type="button" 
                                 class="list-group-item list-group-item-action period-filter" 
                                 data-period="residente">
-                            Residente (todo el año)
+                            <i class="fas fa-calendar-day me-2"></i>Residente (todo el año)
                         </button>
                         <button type="button" 
                                 class="list-group-item list-group-item-action period-filter" 
                                 data-period="invernante">
-                            Invernante (nov-mar)
+                            <i class="fas fa-snowflake me-2"></i>Invernante (nov-mar)
                         </button>
                         <button type="button" 
                                 class="list-group-item list-group-item-action period-filter" 
                                 data-period="estival">
-                            Estival (jun-sep)
+                            <i class="fas fa-sun me-2"></i>Estival (jun-sep)
                         </button>
                     </div>
                 </div>
@@ -74,13 +172,21 @@
         </div>
         
         <!-- Mapa y resultados -->
-        <div class="col-md-9">
-            <div id="map"></div>
+        <div class="col-lg-9">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-0">
+                    <div id="map"></div>
+                </div>
+            </div>
             
-            <div id="bird-list" class="card mt-3">
+            <div id="bird-list" class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-search me-2"></i>
+                        <span id="province-name">Selecciona una provincia en el mapa</span>
+                    </h4>
+                </div>
                 <div class="card-body">
-                    <h4 id="province-name" class="card-title">Selecciona una provincia en el mapa</h4>
-                    <div id="birds" class="mt-3"></div>
+                    <div id="birds" class="row g-3"></div>
                 </div>
             </div>
         </div>
@@ -91,78 +197,100 @@
 {% block javascripts %}
     {{ parent() }}
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Variables globales
             let currentPeriod = 'all';
             let currentProvince = null;
+            let map, provinces;
             
             // 1. Inicializar mapa
-            const map = L.map('map').setView([40.0, -4.0], 6);
+            initMap();
             
-            // 2. Añadir capa base
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            }).addTo(map);
+            // 2. Configurar eventos de filtro
+            setupFilterEvents();
             
-            // 3. Cargar y mostrar provincias
-            fetch("{{ asset('map/spain-provinces.geojson') }}?v={{ 'now'|date('YmdHis') }}")
-                .then(response => response.json())
-                .then(geojsonData => {
-                    // Estilo para las provincias
-                    const provinceStyle = {
-                        fillColor: '#f8f9fa',
-                        weight: 1,
-                        opacity: 1,
-                        color: '#6c757d',
-                        fillOpacity: 0.7
-                    };
-                    
-                    // Resaltado al pasar el ratón
-                    const highlightStyle = {
-                        weight: 3,
-                        color: '#0d6efd',
-                        fillOpacity: 0.7
-                    };
-                    
-                    // Añadir provincias al mapa
-                    const provinces = L.geoJSON(geojsonData, {
-                        style: provinceStyle,
-                        onEachFeature: function(feature, layer) {
-                            // Resaltar al pasar el ratón
-                            layer.on({
-                                mouseover: function(e) {
-                                    layer.setStyle(highlightStyle);
-                                },
-                                mouseout: function(e) {
-                                    provinces.resetStyle(layer);
-                                },
-                                click: function(e) {
-                                    currentProvince = feature.properties.name;
-                                    document.getElementById('province-name').textContent = `Aves en ${currentProvince}`;
-                                    loadBirdsForProvince();
-                                }
-                            });
-                        }
-                    }).addTo(map);
-                    
-                    // Ajustar el zoom al área de España
-                    map.fitBounds(provinces.getBounds());
-                })
-                .catch(error => {
-                    console.error('Error cargando el GeoJSON:', error);
-                    alert('Error al cargar el mapa de provincias');
-                });
-            
-            // Función para cargar aves por provincia
-            function loadBirdsForProvince() {
-                if (!currentProvince) return;
+            function initMap() {
+                map = L.map('map').setView([40.0, -4.0], 6);
                 
-                fetch(`/aves-por-provincia?provincia=${encodeURIComponent(currentProvince)}&periodo=${currentPeriod}`)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Error en la respuesta del servidor');
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                }).addTo(map);
+                
+                // Cargar GeoJSON
+                fetch("{{ asset('map/spain-provinces.geojson') }}?v={{ 'now'|date('YmdHis') }}")
+                    .then(response => response.json())
+                    .then(geojsonData => {
+                        provinces = L.geoJSON(geojsonData, {
+                            style: getProvinceStyle(),
+                            onEachFeature: onEachProvinceFeature
+                        }).addTo(map);
+                        
+                        map.fitBounds(provinces.getBounds());
+                    })
+                    .catch(handleMapError);
+            }
+            
+            function getProvinceStyle() {
+                return {
+                    fillColor: '#f8f9fa',
+                    weight: 1,
+                    opacity: 1,
+                    color: '#6c757d',
+                    fillOpacity: 0.7
+                };
+            }
+            
+            function onEachProvinceFeature(feature, layer) {
+                layer.on({
+                    mouseover: highlightProvince,
+                    mouseout: resetProvinceStyle,
+                    click: selectProvince
+                });
+            }
+            
+            function highlightProvince(e) {
+                const layer = e.target;
+                layer.setStyle({
+                    weight: 3,
+                    color: '#0d6efd',
+                    fillOpacity: 0.7
+                });
+            }
+            
+            function resetProvinceStyle(e) {
+                provinces.resetStyle(e.target);
+            }
+            
+            function selectProvince(e) {
+                currentProvince = e.target.feature.properties.name;
+                document.getElementById('province-name').textContent = `Aves en ${currentProvince}`;
+                loadBirdsForProvince();
+            }
+            
+            function setupFilterEvents() {
+                document.querySelectorAll('.period-filter').forEach(button => {
+                    button.addEventListener('click', function() {
+                        document.querySelectorAll('.period-filter').forEach(btn => {
+                            btn.classList.remove('active');
+                        });
+                        this.classList.add('active');
+                        currentPeriod = this.dataset.period;
+                        
+                        if (currentProvince) {
+                            loadBirdsForProvince();
                         }
+                    });
+                });
+            }
+            
+            function loadBirdsForProvince() {
+                const selectedPeriod = document.querySelector('.period-filter.active')?.dataset.period || 'all';
+
+                fetch(`/aves-por-provincia?provincia=${encodeURIComponent(currentProvince)}&periodo=${selectedPeriod}`)
+                    .then(response => {
+                        if (!response.ok) throw new Error('Error en la respuesta del servidor');
                         return response.json();
                     })
                     .then(aves => {
@@ -171,65 +299,156 @@
                         
                         if (aves.length === 0) {
                             birdsContainer.innerHTML = `
-                                <div class="alert alert-info">
-                                    No hay aves registradas en esta provincia para el periodo seleccionado
+                                <div class="col-12">
+                                    <div class="alert alert-info text-center">
+                                        No hay aves ${selectedPeriod !== 'all' ? ' de este periodo' : ''} registradas en esta provincia
+                                    </div>
                                 </div>
                             `;
+                        } else if (aves.error) { // Manejo de errores
+                            throw new Error(aves.error);
                         } else {
                             aves.forEach(ave => {
-                                const birdCard = document.createElement('div');
-                                birdCard.className = 'bird-card card mb-3';
-                                birdCard.innerHTML = `
-                                    <div class="card-body">
-                                        <div class="row align-items-center">
-                                            <div class="col-md-3 text-center">
-                                                ${ave.imagen ? `
-                                                    <img src="${ave.imagen}" 
-                                                         class="bird-image img-thumbnail" 
-                                                         alt="${ave.nombreComun}">
-                                                ` : ''}
-                                            </div>
-                                            <div class="col-md-9">
-                                                <h5 class="card-title">${ave.nombreComun}</h5>
-                                                <p class="card-text text-muted">
-                                                    <em>${ave.nombreCientifico}</em>
-                                                </p>
+                                const birdCol = document.createElement('div');
+                                birdCol.className = 'col-md-6 col-lg-4';
+                                birdCol.innerHTML = `
+                                    <div class="bird-card card h-100">
+                                        <div class="card-body">
+                                            <div class="row align-items-center">
+                                                <div class="col-4">
+                                                    ${ave.imagen ? `
+                                                        <img src="${ave.imagen}" 
+                                                            class="bird-image img-fluid rounded" 
+                                                            alt="${ave.nombreComun}">
+                                                    ` : `
+                                                        <div class="text-center py-3 bg-light rounded">
+                                                            <i class="fas fa-dove fa-3x text-muted"></i>
+                                                        </div>
+                                                    `}
+                                                </div>
+                                                <div class="col-8">
+                                                    <h5 class="card-title">${ave.nombreComun}</h5>
+                                                    <p class="card-text text-muted small">
+                                                        <em>${ave.nombreCientifico}</em>
+                                                    </p>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 `;
-                                birdsContainer.appendChild(birdCard);
+                                birdsContainer.appendChild(birdCol);
                             });
                         }
                     })
                     .catch(error => {
                         console.error('Error:', error);
                         document.getElementById('birds').innerHTML = `
-                            <div class="alert alert-danger">
-                                Error al cargar las aves: ${error.message}
+                            <div class="col-12">
+                                <div class="alert alert-danger text-center">
+                                    ${error.message}
+                                </div>
                             </div>
                         `;
                     });
             }
             
-            // Eventos para los botones de filtro
-            document.querySelectorAll('.period-filter').forEach(button => {
-                button.addEventListener('click', function() {
-                    // Remover clase active de todos los botones
-                    document.querySelectorAll('.period-filter').forEach(btn => {
-                        btn.classList.remove('active');
+            function handleApiResponse(response) {
+                if (!response.ok) throw new Error('Error en la respuesta del servidor');
+                return response.json();
+            }
+            
+            function displayBirds(aves) {
+                const birdsContainer = document.getElementById('birds');
+                birdsContainer.innerHTML = '';
+                
+                if (aves.length === 0) {
+                    birdsContainer.innerHTML = `
+                        <div class="col-12">
+                            <div class="alert alert-info text-center">
+                                <i class="fas fa-info-circle me-2"></i>
+                                No hay aves registradas en esta provincia para el periodo seleccionado
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    aves.forEach(ave => {
+                        const birdCol = document.createElement('div');
+                        birdCol.className = 'col-md-6 col-lg-4';
+                        birdCol.innerHTML = `
+                            <div class="bird-card card h-100">
+                                <div class="card-body">
+                                    <div class="row align-items-center">
+                                        <div class="col-4">
+                                            ${ave.imagen ? `
+                                                <img src="${ave.imagen}" 
+                                                     class="bird-image img-fluid rounded" 
+                                                     alt="${ave.nombreComun}">
+                                            ` : `
+                                                <div class="text-center py-3 bg-light rounded">
+                                                    <i class="fas fa-dove fa-3x text-muted"></i>
+                                                </div>
+                                            `}
+                                        </div>
+                                        <div class="col-8">
+                                            <h5 class="card-title">${ave.nombreComun}</h5>
+                                            <p class="card-text text-muted small">
+                                                <em>${ave.nombreCientifico}</em>
+                                            </p>
+                                            <button class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-plus-circle me-1"></i> Añadir observación
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        birdsContainer.appendChild(birdCol);
                     });
-                    
-                    // Añadir active al botón clickeado
-                    this.classList.add('active');
-                    currentPeriod = this.dataset.period;
-                    
-                    // Recargar aves si hay una provincia seleccionada
-                    if (currentProvince) {
-                        loadBirdsForProvince();
-                    }
-                });
-            });
+                }
+            }
+            
+            function handleMapError(error) {
+                console.error('Error cargando el mapa:', error);
+                document.getElementById('map').innerHTML = `
+                    <div class="alert alert-danger text-center py-4">
+                        <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                        <h4>Error al cargar el mapa</h4>
+                        <p class="mb-0">Por favor, recarga la página o intenta más tarde</p>
+                    </div>
+                `;
+            }
+            
+            function handleApiError(error) {
+                console.error('Error:', error);
+                document.getElementById('birds').innerHTML = `
+                    <div class="col-12">
+                        <div class="alert alert-danger text-center">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            Error al cargar las aves: ${error.message}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Habilitar botón de añadir observación cuando se selecciona una provincia
+            function updateAddObservationButton() {
+                const btn = document.getElementById('add-observation-btn');
+                if (currentProvince) {
+                    btn.classList.remove('disabled');
+                    btn.href = "{{ path('app_subir_foto', {'id': 'PLACEHOLDER'}) }}".replace('PLACEHOLDER', currentAveId);
+                } else {
+                    btn.classList.add('disabled');
+                    btn.removeAttribute('href');
+                }
+            }
+
+            // Llamar a esta función cuando se seleccione una provincia
+            function selectProvince(e) {
+                currentProvince = e.target.feature.properties.name;
+                document.getElementById('province-name').textContent = `Aves en ${currentProvince}`;
+                loadBirdsForProvince();
+                updateAddObservationButton();
+            }
         });
     </script>
 {% endblock %}

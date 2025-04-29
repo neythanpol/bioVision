@@ -56,7 +56,7 @@ final class FotoController extends AbstractController
             'usuario' => $this->getUser()
         ], ['fechaSubida' => 'DESC']);
 
-        return $this->render('foto/listado.html.twig', [
+        return $this->render('foto/detalle.html.twig', [
             'fotos' => $fotos
         ]);
     }

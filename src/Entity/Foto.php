@@ -105,10 +105,20 @@ class Foto
         return 'uploads/fotos/aves/' .$this->nombreArchivo;
     }
 
+    public function getUsuario(): ?Usuario
+    {
+        return $this->usuario;
+    }
+
     public function setUsuario(?Usuario $usuario): self
     {
         $this->usuario = $usuario;
         return $this;
+    }
+
+    public function getAve(): ?Ave
+    {
+        return $this->ave;
     }
 
     public function setAve(?Ave $ave): self

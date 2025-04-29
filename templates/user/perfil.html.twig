@@ -1,0 +1,135 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mi Perfil | BioVision{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .navbar-custom {
+            background-color: #2c3e50;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .navbar-custom .navbar-brand {
+            color: #ecf0f1;
+            font-weight: 700;
+        }
+        .navbar-custom .nav-link {
+            color: #bdc3c7;
+            transition: all 0.3s;
+        }
+        .navbar-custom .nav-link:hover,
+        .navbar-custom .nav-link.active {
+            color: #18bc9c;
+            transform: translateY(-2px);
+        }
+        .profile-header {
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            border-radius: 10px;
+            color: white;
+        }
+        .stats-card {
+            transition: all 0.3s;
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        .progress-bar {
+            background-color: #4e73df;
+        }
+        .photo-thumbnail {
+            height: 150px;
+            object-fit: cover;
+            transition: transform 0.3s;
+        }
+        .photo-thumbnail:hover {
+            transform: scale(1.05);
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<!-- Barra de navegación -->
+<nav class="navbar navbar-expand-lg navbar-dark navbar-custom mb-4">
+    <div class="container">
+        <a class="navbar-brand" href="{{ path('app_home') }}">
+            <i class="fas fa-dove"></i> BioVision
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ path('app_home') }}"><i class="fas fa-home me-1"></i> Inicio</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ path('app_mapa_aves') }}"><i class="fas fa-map-marked-alt me-1"></i> Mapa</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="{{ path('app_mi_perfil') }}"><i class="fas fa-user-circle me-1"></i> Mi Perfil</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ path('app_logout') }}"><i class="fas fa-sign-out-alt me-1"></i> Salir</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<div class="container my-5">
+    <!-- Encabezado simple -->
+    <div class="text-center mb-4">
+        <h1 class="display-5 fw-bold">
+            <i class="fas fa-user-circle me-2"></i>{{ user.username }}
+        </h1>
+    </div>
+
+    <!-- Solo estadística principal y botón -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-body text-center">
+                    <h3>{{ stats.avesFotografiadas }} de {{ stats.totalAves }}</h3>
+                    <p class="text-muted">Aves fotografiadas</p>
+                    <div class="progress">
+                        <div class="progress-bar" style="width: {{ stats.porcentaje }}%">
+                            {{ stats.porcentaje }}%
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-body text-center">
+                    <a href="{{ path('app_subir_foto') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-camera me-2"></i>Subir Foto
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fotos recientes -->
+    <h4 class="mb-3"><i class="fas fa-images me-2"></i>Mis fotos</h4>
+    {% if fotosRecientes|length > 0 %}
+        <div class="row g-3">
+            {% for foto in fotosRecientes %}
+                <div class="col-6 col-md-4 col-lg-3">
+                    <img src="{{ asset(foto.getUrlRelativa()) }}" 
+                         class="img-thumbnail w-100" 
+                         alt="{{ foto.ave.nombreComun }}"
+                         title="{{ foto.ave.nombreComun }} - {{ foto.fechaSubida|date('d/m/Y') }}">
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            Aún no has subido ninguna foto.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
