@@ -73,4 +73,48 @@ class UserController extends AbstractController
             'form' => $form->createView()
         ]);
     }
+
+    #[Route('/eliminar-foto/{id}', name: 'app_eliminar_foto', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function eliminarFoto(int $id, EntityManagerInterface $entityManager, Request $request): Response 
+    {
+        // Verificar token CSRF
+        $submittedToken = $request->request->get('_token');
+        if (!$this->isCsrfTokenValid('delete-foto'.$id, $submittedToken)) {
+            $this->addFlash('error', 'Token CSRF inválido.');
+            return $this->redirectToRoute('app_mi_perfil');
+        }
+
+        $foto = $entityManager->getRepository(Foto::class)->find($id);
+        $usuario = $this->getUser();
+
+        if (!$foto) {
+            $this->addFlash('error', 'La foto no existe.');
+            return $this->redirectToRoute('app_mi_perfil');
+        }
+
+        if ($foto->getUsuario() !== $usuario) {
+            $this->addFlash('error', 'No tienes permiso para eliminar esta foto.');
+            return $this->redirectToRoute('app_mi_perfil');
+        }
+
+        try {
+            // Eliminar archivo físico
+            $filePath = $this->getParameter('kernel.project_dir').'/public'.$foto->getUrlRelativa();
+
+            if (file_exists($filePath)) {
+                if (!unlink($filePath)) {
+                    throw new \RuntimeException('No se pudo eliminar el archivo físico.');
+                }
+            }
+
+            $entityManager->remove($foto);
+            $entityManager->flush();
+
+            $this->addFlash('success', 'Foto eliminada correctamente.');
+        } catch (\Exception $e) {
+            $this->addFlash('error', 'Error al eliminar la foto: '.$e->getMessage());
+        }
+            return $this->redirectToRoute('app_mi_perfil');
+    }
 }

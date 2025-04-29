@@ -15,10 +15,11 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class HomeController extends AbstractController
 {
     #[Route('/', name: 'app_home')]
-    public function index(): Response
+    public function index(EntityManagerInterface $entityManager): Response
     {
         $user = $this->getUser();
 
+        // Para usuarios no autenticados
         if (!$user) {
             return $this->render('home/index.html.twig', [
                 'show_auth_links' => true,
@@ -26,23 +27,62 @@ class HomeController extends AbstractController
             ]);
         }
 
-        if (!method_exists($user, 'isVerified')) {
-            throw new \RuntimeException('El método isVerified() no existe en la entidad Usuario');
-        }
-
+        // Para usuarios no verificados
         if (!$user->isVerified()) {
             return $this->render('home/index.html.twig', [
-                'show_auth_links' => false,
                 'unverified_warning' => true,
                 'meta_description' => 'Por favor verifica tu email para acceder a todas las funciones de BioVision.'
             ]);
         }
 
+        // Obtener fotos aleatorias para el carrusel
+        $todasFotos = $entityManager->getRepository(Foto::class)->findAll();
+        shuffle($todasFotos);
+        $fotosAleatorias = array_slice($todasFotos, 0, 5);
+
+        // Obtener ave del día
+        $aveDelDia = $this->getAveDelDia($entityManager);
+
+        // Obtener estadísticas del usuario
+        $stats = $this->getUserStats($entityManager, $user);
+
         return $this->render('home/index.html.twig', [
-            'show_auth_links' => false,
+            'fotosAleatorias' => $fotosAleatorias,
+            'aveDelDia' => $aveDelDia,
+            'stats' => $stats,
             'dashboard_mode' => true,
             'meta_description' => 'Tu panel de control de BioVision. Explora el mapa de aves y tus observaciones.'
         ]);
+    }
+
+    private function getAveDelDia(EntityManagerInterface $entityManager): ?Ave
+    {
+        $aves = $entityManager->getRepository(Ave::class)->findAll();
+
+        if (empty($aves)) {
+            return null;
+        }
+
+        // Selección aleatoria
+        return $aves[array_rand($aves)];
+    }
+
+    private function getUserStats(EntityManagerInterface $entityManager, $user): array
+    {
+        $totalAves = $entityManager->getRepository(Ave::class)->count([]);
+        $avesFotografiadas = $entityManager->getRepository(Foto::class)
+            ->createQueryBuilder('f')
+            ->select('COUNT(DISTINCT f.ave)')
+            ->where('f.usuario = :usuario')
+            ->setParameter('usuario', $user)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return [
+            'totalAves' => $totalAves,
+            'avesFotografiadas' => $avesFotografiadas,
+            'porcentaje' => $totalAves > 0 ? round(($avesFotografiadas / $totalAves) * 100) : 0
+        ];
     }
 
     #[Route('/mapa-aves', name: 'app_mapa_aves')]

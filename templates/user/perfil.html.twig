@@ -41,12 +41,27 @@
             background-color: #4e73df;
         }
         .photo-thumbnail {
-            height: 150px;
+            height: 180px;
             object-fit: cover;
             transition: transform 0.3s;
+            border-bottom: 1px solid #dee2e6;
         }
         .photo-thumbnail:hover {
-            transform: scale(1.05);
+            transform: scale(1.03);
+        }
+        .card-title {
+            font-size: 1rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        .card-text.small {
+            font-size: 0.8rem;
+        }
+        .btn-eliminar {
+            transition: all 0.3s;
+        }
+        .btn-eliminar:hover {
+            transform: translateY(-2px);
         }
     </style>
 {% endblock %}
@@ -79,6 +94,7 @@
         </div>
     </div>
 </nav>
+
 <div class="container my-5">
     <!-- Encabezado simple -->
     <div class="text-center mb-4">
@@ -87,7 +103,7 @@
         </h1>
     </div>
 
-    <!-- Solo estadística principal y botón -->
+    <!-- Estadísticas -->
     <div class="row mb-4">
         <div class="col-md-6">
             <div class="card shadow-sm h-100">
@@ -114,22 +130,125 @@
     </div>
 
     <!-- Fotos recientes -->
-    <h4 class="mb-3"><i class="fas fa-images me-2"></i>Mis fotos</h4>
-    {% if fotosRecientes|length > 0 %}
-        <div class="row g-3">
-            {% for foto in fotosRecientes %}
-                <div class="col-6 col-md-4 col-lg-3">
-                    <img src="{{ asset(foto.getUrlRelativa()) }}" 
-                         class="img-thumbnail w-100" 
-                         alt="{{ foto.ave.nombreComun }}"
-                         title="{{ foto.ave.nombreComun }} - {{ foto.fechaSubida|date('d/m/Y') }}">
+    <div class="card shadow mb-4">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0"><i class="fas fa-images me-2"></i>Mis últimas fotos</h4>
+        </div>
+        <div class="card-body">
+            {% if fotosRecientes|length > 0 %}
+                <div class="row g-3">
+                    {% for foto in fotosRecientes %}
+                        <div class="col-md-4 col-lg-3">
+                            <div class="card h-100">
+                                <img src="{{ asset(foto.getUrlRelativa()) }}" 
+                                    class="photo-thumbnail card-img-top" 
+                                    alt="{{ foto.ave.nombreComun }}"
+                                    title="{{ foto.ave.getInfoBasica() }}">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ foto.ave.nombreComun }}</h5>
+                                    <p class="card-text small text-muted mb-2">
+                                        <i class="fas fa-calendar-alt me-1"></i>
+                                        {{ foto.fechaSubida|date('d/m/Y') }}
+                                    </p>
+                                    <p class="card-text small text-muted mb-2">
+                                        <i class="fas fa-binoculars me-1"></i>
+                                        {{ foto.ave.nombreCientifico }}
+                                    </p>
+                                    <div class="d-grid gap-2">
+                                        <button class="btn btn-sm btn-outline-danger btn-eliminar" 
+                                                data-foto-id="{{ foto.id }}"
+                                                data-csrf="{{ csrf_token('delete-foto' ~ foto.id) }}"
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#confirmarEliminarModal">
+                                            <i class="fas fa-trash-alt me-1"></i> Eliminar
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
                 </div>
-            {% endfor %}
+            {% else %}
+                <div class="alert alert-info text-center">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Aún no has subido ninguna foto. ¡Empieza ahora!
+                </div>
+            {% endif %}
         </div>
-    {% else %}
-        <div class="alert alert-info">
-            Aún no has subido ninguna foto.
+    </div>
+
+    <!-- Modal de confirmación (fuera del bucle) -->
+    <div class="modal fade" id="confirmarEliminarModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar eliminación</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="deleteForm" method="POST" action="">
+                    <div class="modal-body">
+                        ¿Estás seguro de que quieres eliminar esta foto? Esta acción no se puede deshacer.
+                        <input type="hidden" name="_token" id="csrfToken" value="">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash-alt me-1"></i> Eliminar
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
-    {% endif %}
+    </div>
 </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const deleteButtons = document.querySelectorAll('.btn-eliminar');
+            const deleteForm = document.getElementById('deleteForm');
+            const csrfTokenInput = document.getElementById('csrfToken');
+            const modal = new bootstrap.Modal(document.getElementById('confirmarEliminarModal'));
+            
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const fotoId = this.getAttribute('data-foto-id');
+                    const csrfToken = this.getAttribute('data-csrf');
+                    
+                    deleteForm.action = `/eliminar-foto/${fotoId}`;
+                    csrfTokenInput.value = csrfToken;
+                });
+            });
+            
+            deleteForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                fetch(this.action, {
+                    method: 'POST',
+                    body: new FormData(this),
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => {
+                    if (response.redirected) {
+                        window.location.href = response.url;
+                    } else if (!response.ok) {
+                        throw new Error('Error en la respuesta del servidor');
+                    }
+                    return response.json();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    window.location.reload();
+                })
+                .finally(() => {
+                    modal.hide();
+                });
+            });
+        });
+    </script>
 {% endblock %}

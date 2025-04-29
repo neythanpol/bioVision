@@ -244,4 +244,14 @@ class Ave
     {
         return $this->fotos;
     }
+
+    public function getInfoBasica(): string
+    {
+        return sprintf("%s (%s)\nFamilia: %s\nOrden: %s", 
+            $this->nombreComun,
+            $this->nombreCientifico,
+            $this->familia,
+            $this->orden
+        );
+    }
 }
