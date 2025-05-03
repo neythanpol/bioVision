@@ -8,7 +8,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Bundle\SecurityBundle\Security; // Clase actualizada
+use Symfony\Bundle\SecurityBundle\Security;
 
 #[AsCommand(
     name: 'app:verify-user',
@@ -17,7 +17,7 @@ use Symfony\Bundle\SecurityBundle\Security; // Clase actualizada
 class VerifyUserCommand extends Command
 {
     public function __construct(
-        private Security $security, // Usamos la clase correcta
+        private Security $security,
         private EntityManagerInterface $em
     ) {
         parent::__construct();
