@@ -5,6 +5,32 @@
 {% block stylesheets %}
     {{ parent() }}
     <style>
+        .navbar-custom {
+            background-color: #2c3e50;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .navbar-custom .navbar-brand {
+            color: #ecf0f1;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+        }
+        .navbar-custom .navbar-brand i {
+            margin-right: 10px;
+        }
+        .navbar-custom .nav-link {
+            color: #bdc3c7;
+            transition: all 0.3s;
+        }
+        .navbar-custom .nav-link:hover {
+            color: #ecf0f1;
+            transform: translateY(-2px);
+        }
+        .navbar-custom .active {
+            color: #18bc9c !important;
+            font-weight: 500;
+        }
+        
         /* Estilos para el carrusel (se mantienen igual) */
         .carousel-container {
             border-radius: 10px;
