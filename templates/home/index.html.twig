@@ -5,8 +5,23 @@
 {% block stylesheets %}
     {{ parent() }}
     <style>
+        body {
+            background-image: url('{{ asset('images/cielo-fondo.jpg') }}');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        
+        .content-wrapper {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
         .navbar-custom {
-            background-color: #2c3e50;
+            background-color: rgba(44, 62, 80, 0.9);
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         .navbar-custom .navbar-brand {
@@ -30,7 +45,36 @@
             color: #18bc9c !important;
             font-weight: 500;
         }
+
+        .articulos-destacados {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
         
+        .like-btn {
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.9;
+            transition: all 0.3s;
+        }
+        
+        .like-btn:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+        
+        .carousel-control-prev-icon,
+        .carousel-control-next-icon {
+            padding: 1rem;
+        }
+
         /* Estilos para el carrusel (se mantienen igual) */
         .carousel-container {
             border-radius: 10px;
@@ -131,6 +175,55 @@
         .stat-label {
             font-size: 0.9rem;
             color: #6c757d;
+        }
+        
+        .stats-box, .articles-box {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .articles-box {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .article-item {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .article-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .stats-box, .articles-box {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .articles-box {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .article-item {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .article-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
         }
         
         @media (max-width: 768px) {
@@ -245,15 +338,20 @@
     
     <!-- Segunda fila: Ave destacada (antes "Ave del día") y estadísticas -->
     <div class="main-grid">
-        <!-- Ave destacada (aleatoria) -->
+        <!-- Ave destacada (con botón añadido) -->
         <div class="ave-del-dia">
             <h2 class="mb-4"><i class="fas fa-dove me-2"></i>Ave destacada</h2>
             {% if aveDelDia %}
                 <div class="row">
                     <div class="col-md-4 text-center">
                         <img src="{{ asset(aveDelDia.imagenNombre ? 'images/aves/' ~ aveDelDia.imagenNombre : 'images/default-bird.jpg') }}" 
-                             class="ave-image img-fluid" 
-                             alt="{{ aveDelDia.nombreComun }}">
+                            class="ave-image img-fluid" 
+                            alt="{{ aveDelDia.nombreComun }}">
+                        <div class="mt-3">
+                            <a href="{{ path('app_test_aves') }}" class="btn btn-outline-primary">
+                                <i class="fas fa-list me-1"></i> Ver listado completo
+                            </a>
+                        </div>
                     </div>
                     <div class="col-md-8">
                         <h3>{{ aveDelDia.nombreComun }}</h3>
@@ -283,30 +381,25 @@
             {% endif %}
         </div>
         
-        <!-- Estadísticas del usuario (mejoradas) -->
+        <!-- Sección dividida: Estadísticas + Artículos -->
         {% if app.user and not unverified_warning|default(false) %}
-            <div class="estadisticas-usuario">
-                <h2 class="mb-4"><i class="fas fa-chart-bar me-2"></i>Mis estadísticas</h2>
+        <div class="split-section">
+            <!-- Estadísticas del usuario -->
+            <div class="stats-box">
+                <h3 class="mb-4"><i class="fas fa-chart-bar me-2"></i>Mis estadísticas</h3>
+                
+                <div class="text-center mb-3">
+                    <h4>{{ stats.avesFotografiadas }} de {{ stats.totalAves }} aves fotografiadas</h4>
+                </div>
                 
                 <div class="progress mb-4" style="height: 25px;">
                     <div class="progress-bar progress-bar-striped" 
-                         role="progressbar" 
-                         style="width: {{ stats.porcentaje }}%;" 
-                         aria-valuenow="{{ stats.porcentaje }}" 
-                         aria-valuemin="0" 
-                         aria-valuemax="100">
+                        role="progressbar" 
+                        style="width: {{ stats.porcentaje }}%;" 
+                        aria-valuenow="{{ stats.porcentaje }}" 
+                        aria-valuemin="0" 
+                        aria-valuemax="100">
                         {{ stats.porcentaje }}%
-                    </div>
-                </div>
-                
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-value">{{ stats.avesFotografiadas }}</div>
-                        <div class="stat-label">Aves fotografiadas</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value">{{ stats.totalAves }}</div>
-                        <div class="stat-label">Total de aves</div>
                     </div>
                 </div>
                 
@@ -316,7 +409,83 @@
                     </a>
                 </div>
             </div>
+            
+            <!-- Artículos recientes -->
+            <div class="articles-box">
+                <h3 class="mb-4"><i class="fas fa-newspaper me-2"></i>Últimos artículos</h3>
+                
+                {% for articulo in articulosRecientes %}
+                    <div class="article-item">
+                        <h4 class="h5">
+                            <a href="{{ path('app_articulo_show', {'slug': articulo.slug}) }}">
+                                {{ articulo.titulo }}
+                            </a>
+                        </h4>
+                        <p class="text-muted small">
+                            Publicado el {{ articulo.fechaPublicacion|date('d/m/Y') }}
+                        </p>
+                        {% if articulo.imagen %}
+                            <img src="{{ asset('images/articulos/' ~ articulo.imagen) }}" class="img-fluid rounded mb-2" alt="{{ articulo.titulo }}">
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">No hay artículos recientes</div>
+                {% endfor %}
+                
+                <div class="text-center mt-3">
+                    <a href="{{ path('app_articulos') }}" class="btn btn-sm btn-outline-secondary">
+                        Ver todos los artículos
+                    </a>
+                </div>
+            </div>
+        </div>
         {% endif %}
+    </div>
+
+    <!-- Últimas fotografías con carrusel -->
+    <div class="container mt-5">
+        <h3 class="mb-4"><i class="fas fa-camera me-2"></i>Últimas fotografías</h3>
+        
+        <div id="ultimasFotosCarousel" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-inner">
+                {% for i in 0..4 %}
+                    <div class="carousel-item {{ loop.first ? 'active' : '' }}">
+                        <div class="row row-cols-1 row-cols-md-4 g-4">
+                            {% for foto in ultimasFotos|slice(i*4, 4) %}
+                                <div class="col">
+                                    <div class="card h-100">
+                                        <div class="position-relative">
+                                            <img src="{{ asset(foto.getUrlRelativa()) }}" class="card-img-top" alt="{{ foto.ave.nombreComun }}">
+                                            <div class="position-absolute top-0 end-0 p-2">
+                                                <button class="btn btn-sm btn-light like-btn" data-foto-id="{{ foto.id }}">
+                                                    <i class="fas fa-heart text-danger"></i> 
+                                                    <span class="like-count">{{ foto.votos|length }}</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="card-body">
+                                            <h5 class="card-title">{{ foto.ave.nombreComun }}</h5>
+                                            <p class="card-text text-muted small">
+                                                Por {{ foto.usuario.username }}<br>
+                                                {{ foto.fechaSubida|date('d/m/Y') }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#ultimasFotosCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon bg-dark rounded" aria-hidden="true"></span>
+                <span class="visually-hidden">Anterior</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#ultimasFotosCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon bg-dark rounded" aria-hidden="true"></span>
+                <span class="visually-hidden">Siguiente</span>
+            </button>
+        </div>
     </div>
     
     <!-- Contenido para invitados -->
@@ -340,11 +509,41 @@
 {% block javascripts %}
     {{ parent() }}
     <script>
-        // Inicializar el carrusel con intervalo de cambio
+        // Inicializar el carrusel
         document.addEventListener('DOMContentLoaded', function() {
             const carousel = new bootstrap.Carousel('#fotosCarousel', {
                 interval: 5000,
                 ride: 'carousel'
+            });
+
+            new bootstrap.Carousel('#ultimasFotosCarousel', {
+                interval: 8000
+            });
+            
+            // Sistema de votación (ejemplo básico)
+            document.querySelectorAll('.like-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const fotoId = this.getAttribute('data-foto-id');
+                    const likeCount = this.querySelector('.like-count');
+                    
+                    fetch(`/votar/${fotoId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            likeCount.textContent = data.totalVotos;
+                            this.classList.add('active');
+                        } else {
+                            alert(data.error || 'Error al votar');
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+                });
             });
         });
     </script>

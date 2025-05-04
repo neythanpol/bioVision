@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Articulo;
 use App\Entity\Foto;
 use App\Entity\Ave;
 use Doctrine\ORM\EntityManagerInterface;
@@ -46,12 +47,20 @@ class HomeController extends AbstractController
         // Obtener estadísticas del usuario
         $stats = $this->getUserStats($entityManager, $user);
 
+        $ultimasFotos = $entityManager->getRepository(Foto::class)
+            ->findBy([], ['fechaSubida' => 'DESC'], 20);
+
+        $articulosRecientes = $entityManager->getRepository(Articulo::class)
+            ->findBy([], ['fechaPublicacion' => 'DESC'], 2);
+
         return $this->render('home/index.html.twig', [
             'fotosAleatorias' => $fotosAleatorias,
             'aveDelDia' => $aveDelDia,
             'stats' => $stats,
             'dashboard_mode' => true,
-            'meta_description' => 'Tu panel de control de BioVision. Explora el mapa de aves y tus observaciones.'
+            'meta_description' => 'Tu panel de control de BioVision. Explora el mapa de aves y tus observaciones.',
+            'ultimasFotos' => $ultimasFotos,
+            'articulosRecientes' => $articulosRecientes
         ]);
     }
 

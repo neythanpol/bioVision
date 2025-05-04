@@ -5,6 +5,8 @@ namespace App\Entity;
 use App\Entity\Usuario;
 use App\Entity\Ave;
 use App\Repository\FotoRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\HttpFoundation\File\File;
@@ -39,9 +41,16 @@ class Foto
     #[ORM\JoinColumn(nullable: false)]
     private ?Ave $ave = null;
 
+    /**
+     * @var Collection<int, Voto>
+     */
+    #[ORM\OneToMany(targetEntity: Voto::class, mappedBy: 'foto')]
+    private Collection $votos;
+
     public function __construct()
     {
         $this->fechaSubida = new \DateTime();
+        $this->votos = new ArrayCollection();
     }
 
     // Getters y Setters
@@ -124,6 +133,36 @@ class Foto
     public function setAve(?Ave $ave): self
     {
         $this->ave = $ave;
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Voto>
+     */
+    public function getVotos(): Collection
+    {
+        return $this->votos;
+    }
+
+    public function addVoto(Voto $voto): static
+    {
+        if (!$this->votos->contains($voto)) {
+            $this->votos->add($voto);
+            $voto->setFoto($this);
+        }
+
+        return $this;
+    }
+
+    public function removeVoto(Voto $voto): static
+    {
+        if ($this->votos->removeElement($voto)) {
+            // set the owning side to null (unless already changed)
+            if ($voto->getFoto() === $this) {
+                $voto->setFoto(null);
+            }
+        }
+
         return $this;
     }
 }

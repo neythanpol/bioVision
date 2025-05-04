@@ -16,6 +16,19 @@ class FotoRepository extends ServiceEntityRepository
         parent::__construct($registry, Foto::class);
     }
 
+    // src/Repository/FotoRepository.php
+    public function findMasVotadas(int $limit = 4): array
+    {
+        return $this->createQueryBuilder('f')
+            ->select('f', 'COUNT(v.id) as votosCount')
+            ->leftJoin('f.votos', 'v')
+            ->groupBy('f.id')
+            ->orderBy('votosCount', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
     //    /**
     //     * @return Foto[] Returns an array of Foto objects
     //     */

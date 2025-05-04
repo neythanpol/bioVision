@@ -1,0 +1,36 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Artículos sobre aves | BioVision{% endblock %}
+
+{% block body %}
+<div class="container my-5">
+    <h1 class="mb-4"><i class="fas fa-newspaper me-2"></i>Artículos</h1>
+    
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        {% for articulo in articulos %}
+            <div class="col">
+                <div class="card h-100 shadow-sm">
+                    {% if articulo.imagen %}
+                        <img src="{{ asset('images/articulos/' ~ articulo.imagen) }}" class="card-img-top" alt="{{ articulo.titulo }}">
+                    {% endif %}
+                    <div class="card-body">
+                        <h2 class="h5 card-title">{{ articulo.titulo }}</h2>
+                        <p class="card-text text-muted">
+                            Publicado el {{ articulo.fechaPublicacion|date('d/m/Y') }}
+                        </p>
+                        <a href="{{ path('app_articulo_show', {'slug': articulo.slug}) }}" class="btn btn-outline-primary">
+                            Leer artículo
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    No hay artículos disponibles actualmente.
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

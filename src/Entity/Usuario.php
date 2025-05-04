@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\UsuarioRepository;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -42,6 +43,24 @@ class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\OneToMany(mappedBy: 'usuario', targetEntity: Foto::class)]
     private Collection $fotos;
+
+    /**
+     * @var Collection<int, Voto>
+     */
+    #[ORM\OneToMany(targetEntity: Voto::class, mappedBy: 'usuario')]
+    private Collection $votos;
+
+    /**
+     * @var Collection<int, Articulo>
+     */
+    #[ORM\OneToMany(targetEntity: Articulo::class, mappedBy: 'autor')]
+    private Collection $articulo;
+
+    public function __construct()
+    {
+        $this->votos = new ArrayCollection();
+        $this->articulo = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -164,5 +183,65 @@ class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
     public function getFotos(): Collection
     {
         return $this->fotos;
+    }
+
+    /**
+     * @return Collection<int, Voto>
+     */
+    public function getVotos(): Collection
+    {
+        return $this->votos;
+    }
+
+    public function addVoto(Voto $voto): static
+    {
+        if (!$this->votos->contains($voto)) {
+            $this->votos->add($voto);
+            $voto->setUsuario($this);
+        }
+
+        return $this;
+    }
+
+    public function removeVoto(Voto $voto): static
+    {
+        if ($this->votos->removeElement($voto)) {
+            // set the owning side to null (unless already changed)
+            if ($voto->getUsuario() === $this) {
+                $voto->setUsuario(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Articulo>
+     */
+    public function getArticulo(): Collection
+    {
+        return $this->articulo;
+    }
+
+    public function addArticulo(Articulo $articulo): static
+    {
+        if (!$this->articulo->contains($articulo)) {
+            $this->articulo->add($articulo);
+            $articulo->setAutor($this);
+        }
+
+        return $this;
+    }
+
+    public function removeArticulo(Articulo $articulo): static
+    {
+        if ($this->articulo->removeElement($articulo)) {
+            // set the owning side to null (unless already changed)
+            if ($articulo->getAutor() === $this) {
+                $articulo->setAutor(null);
+            }
+        }
+
+        return $this;
     }
 }
