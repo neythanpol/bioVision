@@ -30,7 +30,7 @@ class Articulo
     private ?\DateTimeInterface $fechaPublicacion = null;
 
     #[ORM\ManyToOne(inversedBy: 'articulo')]
-    private ?usuario $autor = null;
+    private ?Usuario $autor = null;
 
     public function getId(): ?int
     {
@@ -97,12 +97,12 @@ class Articulo
         return $this;
     }
 
-    public function getAutor(): ?usuario
+    public function getAutor(): ?Usuario
     {
         return $this->autor;
     }
 
-    public function setAutor(?usuario $autor): static
+    public function setAutor(?Usuario $autor): static
     {
         $this->autor = $autor;
 

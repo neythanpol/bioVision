@@ -2,21 +2,20 @@
 
 namespace App\Controller;
 
-use App\Entity\Articulo;
 use App\Entity\Foto;
 use App\Entity\Ave;
+use App\Repository\ArticuloRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class HomeController extends AbstractController
 {
     #[Route('/', name: 'app_home')]
-    public function index(EntityManagerInterface $entityManager): Response
+    public function index(EntityManagerInterface $entityManager, ArticuloRepository $articuloRepository): Response
     {
         $user = $this->getUser();
 
@@ -36,10 +35,29 @@ class HomeController extends AbstractController
             ]);
         }
 
-        // Obtener fotos aleatorias para el carrusel
-        $todasFotos = $entityManager->getRepository(Foto::class)->findAll();
-        shuffle($todasFotos);
-        $fotosAleatorias = array_slice($todasFotos, 0, 5);
+        // Obtener las 5 fotos más votadas para el carrusel
+        $fotosMasVotadas = $entityManager->getRepository(Foto::class)
+        ->createQueryBuilder('f')
+        ->select('f', 'COUNT(v.id) as voteCount')
+        ->leftJoin('f.votos', 'v')
+        ->groupBy('f.id')
+        ->orderBy('voteCount', 'DESC')
+        ->addOrderBy('f.fechaSubida', 'DESC')
+        ->setMaxResults(5)
+        ->getQuery()
+        ->getResult();
+
+        // Extraer solo los objetos Foto del resultado
+        $fotosParaCarrusel = array_column($fotosMasVotadas, 0);
+
+        // Si no hay suficientes fotos votadas, completamos con las más recientes
+        if (count($fotosParaCarrusel) < 5) {
+            $faltantes = 5 - count($fotosParaCarrusel);
+            $fotosRecientes = $entityManager->getRepository(Foto::class)
+                ->findBy([], ['fechaSubida' => 'DESC'], $faltantes);
+            
+            $fotosParaCarrusel = array_merge($fotosParaCarrusel, $fotosRecientes);
+        }
 
         // Obtener ave del día
         $aveDelDia = $this->getAveDelDia($entityManager);
@@ -50,11 +68,11 @@ class HomeController extends AbstractController
         $ultimasFotos = $entityManager->getRepository(Foto::class)
             ->findBy([], ['fechaSubida' => 'DESC'], 20);
 
-        $articulosRecientes = $entityManager->getRepository(Articulo::class)
-            ->findBy([], ['fechaPublicacion' => 'DESC'], 2);
+        // Obtener los últimos 3 artículos ordenados por fecha de publicación descendente
+        $articulosRecientes = $articuloRepository->findLatestArticles(3);
 
         return $this->render('home/index.html.twig', [
-            'fotosAleatorias' => $fotosAleatorias,
+            'fotosParaCarrusel' => $fotosParaCarrusel,
             'aveDelDia' => $aveDelDia,
             'stats' => $stats,
             'dashboard_mode' => true,

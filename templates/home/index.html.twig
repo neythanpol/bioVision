@@ -177,18 +177,6 @@
             color: #6c757d;
         }
         
-        .stats-box, .articles-box {
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        
-        .articles-box {
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        
         .article-item {
             margin-bottom: 15px;
             padding-bottom: 15px;
@@ -210,20 +198,39 @@
         }
         
         .articles-box {
-            max-height: 400px;
+            max-height: 500px;
             overflow-y: auto;
+            padding: 15px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        
-        .article-item {
-            margin-bottom: 15px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #eee;
+
+        .article-link {
+            color: #495057;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
         }
-        
-        .article-item:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
-            padding-bottom: 0;
+
+        .article-link:hover {
+            color: #0d6efd;
+            background-color: #f8f9fa;
+            border-left-color: #0d6efd;
+            transform: translateX(3px);
+        }
+
+        /* Asegurar igual altura */
+        .split-section {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            height: 100%;
+        }
+
+        .stats-box, .articles-box {
+            flex: 1;  {# Ocupa el mismo espacio #}
+            display: flex;
+            flex-direction: column;
         }
         
         @media (max-width: 768px) {
@@ -296,12 +303,14 @@
         <div class="carousel-container">
             <div id="fotosCarousel" class="carousel slide" data-bs-ride="carousel">
                 <div class="carousel-inner">
-                    {% for foto in fotosAleatorias %}
+                    {% for foto in fotosParaCarrusel %}
                         <div class="carousel-item {{ loop.first ? 'active' : '' }}">
                             <img src="{{ asset(foto.getUrlRelativa()) }}" class="d-block w-100" alt="{{ foto.ave.nombreComun }}">
                             <div class="carousel-caption d-none d-md-block">
                                 <h5>{{ foto.ave.nombreComun }}</h5>
-                                <p>Fotografiada por {{ foto.usuario.username }}</p>
+                                <p>Fotografiada por {{ foto.usuario.username }} | 
+                                <i class="fas fa-heart text-danger"></i> {{ foto.votos|length }} votos
+                                </p>
                             </div>
                         </div>
                     {% else %}
@@ -411,29 +420,25 @@
             </div>
             
             <!-- Artículos recientes -->
-            <div class="articles-box">
-                <h3 class="mb-4"><i class="fas fa-newspaper me-2"></i>Últimos artículos</h3>
+            <div class="stats-box">  {# Usamos la misma clase que stats-box para igualar estilos #}
+                <h3 class="mb-3"><i class="fas fa-newspaper me-2"></i>Últimos artículos</h3>
                 
-                {% for articulo in articulosRecientes %}
-                    <div class="article-item">
-                        <h4 class="h5">
-                            <a href="{{ path('app_articulo_show', {'slug': articulo.slug}) }}">
+                <ul class="list-unstyled mb-3">
+                    {% for articulo in articulosRecientes %}
+                        <li class="mb-2">
+                            <a href="{{ path('app_articulo_show', {'slug': articulo.slug}) }}" 
+                            class="text-decoration-none d-block py-1 px-2 rounded article-link">
+                                <i class="fas fa-angle-right me-1 text-primary"></i>
                                 {{ articulo.titulo }}
                             </a>
-                        </h4>
-                        <p class="text-muted small">
-                            Publicado el {{ articulo.fechaPublicacion|date('d/m/Y') }}
-                        </p>
-                        {% if articulo.imagen %}
-                            <img src="{{ asset('images/articulos/' ~ articulo.imagen) }}" class="img-fluid rounded mb-2" alt="{{ articulo.titulo }}">
-                        {% endif %}
-                    </div>
-                {% else %}
-                    <div class="alert alert-info">No hay artículos recientes</div>
-                {% endfor %}
+                        </li>
+                    {% else %}
+                        <li class="text-muted small">No hay artículos recientes</li>
+                    {% endfor %}
+                </ul>
                 
-                <div class="text-center mt-3">
-                    <a href="{{ path('app_articulos') }}" class="btn btn-sm btn-outline-secondary">
+                <div class="text-center mt-auto"> {# mt-auto para empujar el botón hacia abajo #}
+                    <a href="{{ path('app_articulos') }}" class="btn btn-sm btn-outline-primary">
                         Ver todos los artículos
                     </a>
                 </div>

@@ -11,23 +11,21 @@
             <div class="col">
                 <div class="card h-100 shadow-sm">
                     {% if articulo.imagen %}
-                        <img src="{{ asset('images/articulos/' ~ articulo.imagen) }}" class="card-img-top" alt="{{ articulo.titulo }}">
+                        <img src="{{ asset('images/articulos/' ~ articulo.imagen) }}" 
+                             class="card-img-top" 
+                             alt="{{ articulo.titulo }}"
+                             style="height: 200px; object-fit: cover;">
                     {% endif %}
                     <div class="card-body">
                         <h2 class="h5 card-title">{{ articulo.titulo }}</h2>
                         <p class="card-text text-muted">
                             Publicado el {{ articulo.fechaPublicacion|date('d/m/Y') }}
                         </p>
-                        <a href="{{ path('app_articulo_show', {'slug': articulo.slug}) }}" class="btn btn-outline-primary">
+                        <a href="{{ path('app_articulo_show', {'slug': articulo.slug}) }}" 
+                           class="btn btn-outline-primary">
                             Leer artículo
                         </a>
                     </div>
-                </div>
-            </div>
-        {% else %}
-            <div class="col-12">
-                <div class="alert alert-info">
-                    No hay artículos disponibles actualmente.
                 </div>
             </div>
         {% endfor %}

@@ -16,6 +16,15 @@ class ArticuloRepository extends ServiceEntityRepository
         parent::__construct($registry, Articulo::class);
     }
 
+    public function findLatestArticles(int $maxResults = 3): array
+    {
+        return $this->createQueryBuilder('a')
+            ->orderBy('a.fechaPublicacion', 'DESC')
+            ->setMaxResults($maxResults)
+            ->getQuery()
+            ->getResult();
+    }
+
     //    /**
     //     * @return Articulo[] Returns an array of Articulo objects
     //     */

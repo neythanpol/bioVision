@@ -19,21 +19,21 @@ final class ArticuloController extends AbstractController
         );
 
         return $this->render('articulo/index.html.twig', [
-            'articulos' => $articulos,
+            'articulos' => $articulos
         ]);
     }
 
     #[Route('/articulos/{slug}', name: 'app_articulo_show')]
-    public function show(Articulo $articulo): Response
+    public function show(string $slug, EntityManagerInterface $em): Response
     {
-        return $this->render('articulo/show.html.twig', [
-            'articulo' => $articulo,
-        ]);
-    }
+        $articulo = $em->getRepository(Articulo::class)->findOneBy(['slug' => $slug]);
+        
+        if (!$articulo) {
+            throw $this->createNotFoundException('Artículo no encontrado');
+        }
 
-    #[Route('/articulos/aves-estivales-castilla-leon', name: 'app_articulo_aves_estivales')]
-    public function avesEstivales(): Response
-    {
-        return $this->render('articulo/especiales/aves-estivales-castilla-leon.html.twig');
+        return $this->render('articulo/show.html.twig', [
+            'articulo' => $articulo
+        ]);
     }
 }
