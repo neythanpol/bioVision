@@ -1,6 +1,7 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Artículos sobre aves | BioVision{% endblock %}
+{% block title %}Prueba de Aves{% endblock %}
+
 {% block stylesheets %}
     {{ parent() }}
     <style>
@@ -145,11 +146,7 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
         
-        .ave-image {
-            max-height: 200px;
-            object-fit: contain;
-            margin-bottom: 15px;
-        }
+        
         
         /* Estilos para las estadísticas */
         .stats-grid {
@@ -245,71 +242,86 @@
 {% endblock %}
 
 {% block body %}
-<nav class="navbar navbar-expand-lg navbar-dark navbar-custom mb-4">
-    <div class="container">
-        <a class="navbar-brand" href="{{ path('app_home') }}">
-            <i class="fas fa-dove"></i> BioVision
-        </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item">
-                    <a class="nav-link active" href="{{ path('app_home') }}"><i class="fas fa-home me-1"></i> Inicio</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ path('app_mapa_aves') }}"><i class="fas fa-map-marked-alt me-1"></i> Mapa</a>
-                </li>
-                {% if app.user %}
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
-                        <i class="fas fa-user-circle me-1"></i> {{ app.user.username }}
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="{{ path('app_mi_perfil') }}"><i class="fas fa-user me-2"></i> Mi Perfil</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="{{ path('app_logout') }}"><i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión</a></li>
-                    </ul>
-                </li>
-                {% else %}
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ path('app_login') }}"><i class="fas fa-sign-in-alt me-1"></i> Ingresar</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ path('app_register') }}"><i class="fas fa-user-plus me-1"></i> Registrarse</a>
-                </li>
-                {% endif %}
-            </ul>
-        </div>
-    </div>
-</nav>
-<div class="container my-5">
-    <h1 class="mb-4"><i class="fas fa-newspaper me-2"></i>Artículos</h1>
-    
-    <div class="row row-cols-1 row-cols-md-3 g-4">
-        {% for articulo in articulos %}
-            <div class="col">
-                <div class="card h-100 shadow-sm">
-                    {% if articulo.imagen %}
-                        <img src="{{ asset('images/articulos/' ~ articulo.imagen) }}" 
-                             class="card-img-top" 
-                             alt="{{ articulo.titulo }}"
-                             style="height: 200px; object-fit: cover;">
-                    {% endif %}
-                    <div class="card-body">
-                        <h2 class="h5 card-title">{{ articulo.titulo }}</h2>
-                        <p class="card-text text-muted">
-                            Publicado el {{ articulo.fechaPublicacion|date('d/m/Y') }}
-                        </p>
-                        <a href="{{ path('app_articulo_show', {'slug': articulo.slug}) }}" 
-                           class="btn btn-outline-primary">
-                            Leer artículo
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="{{ path('app_home') }}">
+                <i class="fas fa-dove"></i> BioVision
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ path('app_home') }}"><i class="fas fa-home me-1"></i> Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_mapa_aves') }}"><i class="fas fa-map-marked-alt me-1"></i> Mapa</a>
+                    </li>
+                    {% if app.user %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle me-1"></i> {{ app.user.username }}
                         </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{{ path('app_mi_perfil') }}"><i class="fas fa-user me-2"></i> Mi Perfil</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ path('app_logout') }}"><i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión</a></li>
+                        </ul>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_login') }}"><i class="fas fa-sign-in-alt me-1"></i> Ingresar</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_register') }}"><i class="fas fa-user-plus me-1"></i> Registrarse</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container mt-4">
+        <h1 class="mb-4">Listado de Aves</h1>
+        
+        <div class="row">
+            {% for ave in aves %}
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        {% if ave.getImagenNombre() %}
+                            <img src="{{ asset('images/aves/' ~ ave.getImagenNombre()) }}" 
+                                 class="card-img-top ave-image img-fluid" 
+                                 alt="{{ ave.nombreComun }}"
+                                 style="max-height: 200px; object-fit: cover;">
+                        {% else %}
+                            <div class="bg-secondary text-white text-center p-5">
+                                Sin imagen
+                            </div>
+                        {% endif %}
+                        
+                        <div class="card-body">
+                            <h5 class="card-title">{{ ave.nombreComun }}</h5>
+                            <h6 class="card-subtitle mb-2 text-muted">
+                                <em>{{ ave.nombreCientifico }}</em>
+                            </h6>
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    {{ ave.familia }} ({{ ave.orden }})
+                                </small>
+                            </p>
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    {% if ave.estadoConservacion %}
+                                        {{ ave.estadoConservacion.codigo }} - {{ ave.estadoConservacion.nombre }}
+                                    {% else %}
+                                        Estado no asignado
+                                    {% endif %}
+                                </small>
+                            </p>
+                        </div>
                     </div>
                 </div>
-            </div>
-        {% endfor %}
+            {% endfor %}
+        </div>
     </div>
-</div>
 {% endblock %}

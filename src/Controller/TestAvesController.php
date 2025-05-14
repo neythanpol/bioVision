@@ -9,12 +9,12 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class TestAvesController extends AbstractController
 {
-    #[Route('/test-aves', name: 'app_test_aves')]
+    #[Route('/list-aves', name: 'app_list_aves')]
     public function list(AveRepository $aveRepository): Response
     {
         $aves = $aveRepository->findAll();
         
-        return $this->render('test_aves/list.html.twig', [
+        return $this->render('list_aves/list.html.twig', [
             'aves' => $aves
         ]);
     }

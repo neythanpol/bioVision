@@ -287,7 +287,7 @@
     </div>
 </nav>
 
-<div class="container my-4">
+<main class="container my-4">
     <!-- Mensaje para usuarios no verificados -->
     {% if unverified_warning|default(false) %}
         <div class="alert alert-warning">
@@ -348,7 +348,7 @@
     <!-- Segunda fila: Ave destacada (antes "Ave del día") y estadísticas -->
     <div class="main-grid">
         <!-- Ave destacada (con botón añadido) -->
-        <div class="ave-del-dia">
+        <section class="ave-del-dia">
             <h2 class="mb-4"><i class="fas fa-dove me-2"></i>Ave destacada</h2>
             {% if aveDelDia %}
                 <div class="row">
@@ -357,7 +357,7 @@
                             class="ave-image img-fluid" 
                             alt="{{ aveDelDia.nombreComun }}">
                         <div class="mt-3">
-                            <a href="{{ path('app_test_aves') }}" class="btn btn-outline-primary">
+                            <a href="{{ path('app_list_aves') }}" class="btn btn-outline-primary">
                                 <i class="fas fa-list me-1"></i> Ver listado completo
                             </a>
                         </div>
@@ -388,13 +388,13 @@
                     No hay ave destacada disponible.
                 </div>
             {% endif %}
-        </div>
+        </section>
         
         <!-- Sección dividida: Estadísticas + Artículos -->
         {% if app.user and not unverified_warning|default(false) %}
-        <div class="split-section">
+        <section class="split-section">
             <!-- Estadísticas del usuario -->
-            <div class="stats-box">
+            <article class="stats-box">
                 <h3 class="mb-4"><i class="fas fa-chart-bar me-2"></i>Mis estadísticas</h3>
                 
                 <div class="text-center mb-3">
@@ -417,10 +417,10 @@
                         <i class="fas fa-user-circle me-1"></i> Ver perfil completo
                     </a>
                 </div>
-            </div>
+            </article>
             
             <!-- Artículos recientes -->
-            <div class="stats-box">  {# Usamos la misma clase que stats-box para igualar estilos #}
+            <article class="stats-box">  {# Usamos la misma clase que stats-box para igualar estilos #}
                 <h3 class="mb-3"><i class="fas fa-newspaper me-2"></i>Últimos artículos</h3>
                 
                 <ul class="list-unstyled mb-3">
@@ -442,8 +442,8 @@
                         Ver todos los artículos
                     </a>
                 </div>
-            </div>
-        </div>
+            </article>
+        </section>
         {% endif %}
     </div>
 
@@ -508,7 +508,7 @@
             </div>
         </div>
     {% endif %}
-</div>
+</main>
 {% endblock %}
 
 {% block javascripts %}

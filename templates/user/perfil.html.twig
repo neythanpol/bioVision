@@ -50,12 +50,15 @@
         }
         .photo-thumbnail {
             height: 180px;
-            object-fit: cover;
+            object-fit: contain;
             transition: transform 0.3s;
             border-bottom: 1px solid #dee2e6;
         }
         .photo-thumbnail:hover {
             transform: scale(1.03);
+        }
+        #misFotos {
+            min-height: 100px;
         }
         .card-title {
             font-size: 1rem;
@@ -65,6 +68,7 @@
         .card-text.small {
             font-size: 0.8rem;
         }
+        
         .btn-eliminar {
             transition: all 0.3s;
         }
@@ -128,8 +132,8 @@
         </div>
         <div class="col-md-6">
             <div class="card shadow-sm h-100">
-                <div class="card-body text-center">
-                    <a href="{{ path('app_subir_foto') }}" class="btn btn-primary btn-lg">
+                <div class="card-body d-flex flex-column justify-content-center align-items-center">
+                    <a href="{{ path('app_subir_foto') }}" class="btn btn-dark btn-lg">
                         <i class="fas fa-camera me-2"></i>Subir Foto
                     </a>
                 </div>
@@ -138,14 +142,16 @@
     </div>
 
     <!-- Fotos recientes -->
-    <div class="card shadow mb-4">
+    <div class="card shadow mb-4" id="misFotos">
         <div class="container mt-4">
             <h2>Mis fotografías</h2>
             <div class="row row-cols-2 row-cols-md-4 row-cols-lg-6 g-4">
                 {% for foto in user.fotos %}
-                    <div class="col">
+                    <div class="col" style="padding-bottom: 12px;">
                         <div class="card h-100">
-                            <img src="{{ asset(foto.getUrlRelativa()) }}" class="card-img-top" alt="{{ foto.ave.nombreComun }}">
+                            <div class="card-img-container">
+                                <img src="{{ asset(foto.getUrlRelativa()) }}" class="card-img-top" alt="{{ foto.ave.nombreComun }}">
+                            </div>
                             <div class="card-footer p-2">
                                 <b><small class="text-muted">{{ foto.ave.nombreComun }}</small></b>
                             </div>

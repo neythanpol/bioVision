@@ -1,26 +1,199 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Register{% endblock %}
+{% block title %}Registro | BioVision{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        body {
+            background-image: url('{{ asset('images/cielo-fondo.jpg') }}');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            background-repeat: no-repeat;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .register-container {
+            max-width: 500px;
+            margin: auto;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-top: 5vh;
+            margin-bottom: 5vh;
+        }
+
+        .register-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .register-header i {
+            font-size: 3rem;
+            color: #4e73df;
+            margin-bottom: 1rem;
+        }
+
+        .register-header h1 {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-control {
+            height: 45px;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            padding-left: 15px;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            border-color: #4e73df;
+            box-shadow: 0 0 0 0.25rem rgba(78, 115, 223, 0.25);
+        }
+
+        .btn-register {
+            background-color: #4e73df;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .btn-register:hover {
+            background-color: #3a5bbf;
+            transform: translateY(-2px);
+        }
+
+        .form-check {
+            display: flex;
+            align-items: center;
+            margin-top: 1.5rem;
+        }
+
+        .form-check-input {
+            margin-right: 10px;
+            width: 1.2em;
+            height: 1.2em;
+        }
+
+        .form-check-label {
+            color: #495057;
+        }
+
+        .form-check-label a {
+            color: #4e73df;
+            text-decoration: none;
+        }
+
+        .form-check-label a:hover {
+            text-decoration: underline;
+        }
+
+        .login-footer {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: #6c757d;
+        }
+
+        .login-footer a {
+            color: #4e73df;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .login-footer a:hover {
+            text-decoration: underline;
+        }
+
+        .alert-danger {
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+    </style>
+{% endblock %}
 
 {% block body %}
-    {% for flash_error in app.flashes('verify_email_error') %}
-        <div class="alert alert-danger" role="alert">{{ flash_error }}</div>
-    {% endfor %}
+<div class="container">
+    <div class="register-container">
+        <div class="register-header">
+            <i class="fas fa-user-plus"></i>
+            <h1>Únete a BioVision</h1>
+            <p class="text-muted">Completa el formulario para crear tu cuenta</p>
+        </div>
 
-    <h1>Registro</h1>
+        {% for flash_error in app.flashes('verify_email_error') %}
+            <div class="alert alert-danger" role="alert">{{ flash_error }}</div>
+        {% endfor %}
 
-    {{ form_errors(registrationForm) }}
+        {{ form_start(registrationForm, {'attr': {'class': 'register-form'}}) }}
+            <div class="form-group">
+                {{ form_label(registrationForm.username, 'Nombre de usuario', {'label_attr': {'class': 'form-label'}}) }}
+                {{ form_widget(registrationForm.username, {
+                    'attr': {
+                        'class': 'form-control',
+                        'placeholder': 'Elige un nombre de usuario'
+                    }
+                }) }}
+                {{ form_errors(registrationForm.username) }}
+            </div>
 
-    {{ form_start(registrationForm) }}
-        {{ form_row(registrationForm.username, {
-            label: 'Nombre de usuario'
-        }) }}
-        {{ form_row(registrationForm.email) }}
-        {{ form_row(registrationForm.plainPassword, {
-            label: 'Password'
-        }) }}
-        {{ form_row(registrationForm.agreeTerms) }}
+            <div class="form-group">
+                {{ form_label(registrationForm.email, 'Correo electrónico', {'label_attr': {'class': 'form-label'}}) }}
+                {{ form_widget(registrationForm.email, {
+                    'attr': {
+                        'class': 'form-control',
+                        'placeholder': 'tu@email.com'
+                    }
+                }) }}
+                {{ form_errors(registrationForm.email) }}
+            </div>
 
-        <button type="submit" class="btn">Registro</button>
-    {{ form_end(registrationForm) }}
+            <div class="form-group">
+                {{ form_label(registrationForm.plainPassword, 'Contraseña', {'label_attr': {'class': 'form-label'}}) }}
+                {{ form_widget(registrationForm.plainPassword, {
+                    'attr': {
+                        'class': 'form-control',
+                        'placeholder': 'Mínimo 6 caracteres'
+                    }
+                }) }}
+                {{ form_errors(registrationForm.plainPassword) }}
+            </div>
+
+            <div class="form-check">
+                {{ form_widget(registrationForm.agreeTerms, {'attr': {'class': 'form-check-input'}}) }}
+                {{ form_label(registrationForm.agreeTerms, 'Acepto los términos y condiciones', {'label_attr': {'class': 'form-check-label'}}) }}
+                {{ form_errors(registrationForm.agreeTerms) }}
+            </div>
+
+            <button type="submit" class="btn btn-register">
+                <i class="fas fa-user-plus me-2"></i> Registrarse
+            </button>
+
+            <div class="login-footer">
+                ¿Ya tienes una cuenta? <a href="{{ path('app_login') }}">Inicia sesión aquí</a>
+            </div>
+        {{ form_end(registrationForm) }}
+    </div>
+</div>
 {% endblock %}
