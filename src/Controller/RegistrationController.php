@@ -24,40 +24,56 @@ class RegistrationController extends AbstractController
     }
 
     #[Route('/register', name: 'app_register')]
-    public function register(Request $request, UserPasswordHasherInterface $userPasswordHasher, Security $security, EntityManagerInterface $entityManager): Response
+    public function register(Request $request, UserPasswordHasherInterface $userPasswordHasher, EntityManagerInterface $entityManager): Response
     {
         $user = new Usuario();
         $form = $this->createForm(RegistrationFormType::class, $user);
+
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            /** @var string $plainPassword */
+            // Verificar si el email ya existe
             $plainPassword = $form->get('plainPassword')->getData();
 
-            // encode the plain password
-            $user->setPassword($userPasswordHasher->hashPassword($user, $plainPassword));
+            // Codificar la contraseña y asignarla
+            $user->setPassword(
+                $userPasswordHasher->hashPassword(
+                    $user,
+                    $plainPassword
+                )
+            );
+            $existingUser = $entityManager->getRepository(Usuario::class)->findOneBy(['email' => $user->getEmail()]);
+            if ($existingUser) {
+                $this->addFlash('error', 'Este email ya está registrado');
+                return $this->redirectToRoute('app_register');
+            }
 
-            // Establecer el rol de usuario
+            // Codificar la contraseña
+            $user->setPassword(
+                $userPasswordHasher->hashPassword(
+                    $user,
+                    $form->get('plainPassword')->getData()
+                )
+            );
+
+            // Establecer roles y fecha
             $user->setRoles(['ROLE_USER']);
-
-            // Establecer la fecha de creación
             $user->setCreated(new \DateTime());
 
             $entityManager->persist($user);
             $entityManager->flush();
 
-            // generate a signed url and email it to the user
+            // Enviar email de confirmación
             $this->emailVerifier->sendEmailConfirmation('app_verify_email', $user,
                 (new TemplatedEmail())
                     ->from(new Address('no-reply@biovision.com', 'BioVision Mail Bot'))
                     ->to((string) $user->getEmail())
-                    ->subject('Please Confirm your Email')
+                    ->subject('Por favor, confirma tu email')
                     ->htmlTemplate('registration/confirmation_email.html.twig')
             );
 
-            // do anything else you need here, like send an email
-
-            return $security->login($user, AppAuthenticator::class, 'main');
+            $this->addFlash('success', 'Se ha enviado un enlace de confirmación a tu email. Por favor, verifica tu cuenta.');
+            return $this->redirectToRoute('app_login');
         }
 
         return $this->render('registration/register.html.twig', [

@@ -12,19 +12,21 @@ class SecurityController extends AbstractController
     #[Route(path: '/login', name: 'app_login')]
     public function login(AuthenticationUtils $authenticationUtils): Response
     {
+        if ($this->getUser()) {
+            // Si el usuario ya está autenticado, redirigir a la página de inicio
+            return $this->redirectToRoute('app_home');
+        }
+
         // Obtener el error de login si existe
         $error = $authenticationUtils->getLastAuthenticationError();
 
         // Obtener el último nombre de usuario ingresado
         $lastUsername = $authenticationUtils->getLastUsername();
 
-        if ($error) {
-            $this->addFlash('error', $error->getMessageKey());
-        }
-
         return $this->render('security/login.html.twig', [
             'last_username' => $lastUsername,
             'error' => $error,
+            'error_message' => $error ? 'Credenciales inválidas (usuario o contraseña incorrectos)' : null
         ]);
     }
 

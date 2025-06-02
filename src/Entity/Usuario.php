@@ -7,12 +7,14 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 
 #[ORM\Entity(repositoryClass: UsuarioRepository::class)]
-#[UniqueEntity(fields: ['email'], message: 'There is already an account with this email')]
+#[UniqueEntity(fields: ['email'], message: 'Ya existe una cuenta con este email')]
+#[UniqueEntity(fields: ['username'], message: 'Este nombre de usuario ya está en uso')]
 class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -21,9 +23,23 @@ class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
     private ?int $id = null;
 
     #[ORM\Column(length: 180, unique: true)]
+    #[Assert\NotBlank(message: 'El nombre de usuario es obligatorio')]
+    #[Assert\Length(
+        min: 4,
+        max: 20,
+        minMessage: 'El usuario debe tener al menos {{ limit }} caracteres',
+        maxMessage: 'El usuario no puede tener más de {{ limit }} caracteres'
+    )]
+    #[Assert\Regex(
+        pattern: '/^[a-zA-Z0-9_]+$/',
+        message: 'El nombre de usuario solo puede contener letras, números y guiones bajos'
+    )]
     private ?string $username = null;
 
     #[ORM\Column(length: 180, unique: true)]
+    #[Assert\NotBlank(message: 'El email es obligatorio')]
+    #[Assert\Email(message: 'El email {{ value }} no es válido')]
+    #[Assert\Length(max: 180)]
     private ?string $email = null;
 
     #[ORM\Column(length: 255)]
@@ -55,6 +71,8 @@ class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
      */
     #[ORM\OneToMany(targetEntity: Articulo::class, mappedBy: 'autor')]
     private Collection $articulo;
+    
+    private ?string $plainPassword = null;
 
     public function __construct()
     {
@@ -105,9 +123,7 @@ class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getRoles(): array
     {
-        // Aseguro que siempre se devuelve un array
         $roles = $this->roles;
-        // Garantiza que todos los usuarios tengan al menos ROLE_USER
         $roles[] = 'ROLE_USER';
 
         return array_unique($roles);
@@ -155,16 +171,13 @@ class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     public function getSalt(): ?string {
-        // No se necesita salt si se usan algoritmos modernos
         return null;
     }
 
     public function eraseCredentials(): void {
-        // Si tuviera algo que borrar, se haría aquí
     }
 
     public function getUserIdentifier(): string {
-        // Devuelve el campo que se usará como identificador único
         return $this->username;
     }
 
@@ -206,7 +219,6 @@ class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
     public function removeVoto(Voto $voto): static
     {
         if ($this->votos->removeElement($voto)) {
-            // set the owning side to null (unless already changed)
             if ($voto->getUsuario() === $this) {
                 $voto->setUsuario(null);
             }
@@ -236,11 +248,22 @@ class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
     public function removeArticulo(Articulo $articulo): static
     {
         if ($this->articulo->removeElement($articulo)) {
-            // set the owning side to null (unless already changed)
             if ($articulo->getAutor() === $this) {
                 $articulo->setAutor(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getPlainPassword(): ?string
+    {
+        return $this->plainPassword;
+    }
+
+    public function setPlainPassword(?string $plainPassword): static
+    {
+        $this->plainPassword = $plainPassword;
 
         return $this;
     }

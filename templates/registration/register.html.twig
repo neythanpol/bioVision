@@ -130,6 +130,36 @@
             margin-bottom: 0.5rem;
             display: block;
         }
+
+        .form-error {
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+        
+        .is-invalid {
+            border-color: #dc3545 !important;
+        }
+        
+        .password-strength {
+            margin-top: 0.5rem;
+            height: 4px;
+            background: #e9ecef;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        
+        .password-strength-bar {
+            height: 100%;
+            width: 0;
+            transition: width 0.3s ease;
+        }
+        
+        .password-hints {
+            font-size: 0.8rem;
+            color: #6c757d;
+            margin-top: 0.25rem;
+        }
     </style>
 {% endblock %}
 
@@ -146,44 +176,77 @@
             <div class="alert alert-danger" role="alert">{{ flash_error }}</div>
         {% endfor %}
 
-        {{ form_start(registrationForm, {'attr': {'class': 'register-form'}}) }}
+        {{ form_start(registrationForm, {'attr': {'class': 'register-form', 'novalidate': 'novalidate'}}) }}
             <div class="form-group">
-                {{ form_label(registrationForm.username, 'Nombre de usuario', {'label_attr': {'class': 'form-label'}}) }}
+                {{ form_label(registrationForm.username, null, {'label_attr': {'class': 'form-label'}}) }}
                 {{ form_widget(registrationForm.username, {
                     'attr': {
-                        'class': 'form-control',
+                        'class': 'form-control' ~ (registrationForm.username.vars.errors|length ? ' is-invalid' : ''),
                         'placeholder': 'Elige un nombre de usuario'
                     }
                 }) }}
-                {{ form_errors(registrationForm.username) }}
+                <div class="form-error">
+                    {{ form_errors(registrationForm.username) }}
+                </div>
             </div>
 
             <div class="form-group">
-                {{ form_label(registrationForm.email, 'Correo electrónico', {'label_attr': {'class': 'form-label'}}) }}
+                {{ form_label(registrationForm.email, null, {'label_attr': {'class': 'form-label'}}) }}
                 {{ form_widget(registrationForm.email, {
                     'attr': {
-                        'class': 'form-control',
+                        'class': 'form-control' ~ (registrationForm.email.vars.errors|length ? ' is-invalid' : ''),
                         'placeholder': 'tu@email.com'
                     }
                 }) }}
-                {{ form_errors(registrationForm.email) }}
+                <div class="form-error">
+                    {{ form_errors(registrationForm.email) }}
+                </div>
             </div>
 
             <div class="form-group">
-                {{ form_label(registrationForm.plainPassword, 'Contraseña', {'label_attr': {'class': 'form-label'}}) }}
-                {{ form_widget(registrationForm.plainPassword, {
+                {{ form_label(registrationForm.plainPassword.first, null, {'label_attr': {'class': 'form-label'}}) }}
+                {{ form_widget(registrationForm.plainPassword.first, {
                     'attr': {
-                        'class': 'form-control',
-                        'placeholder': 'Mínimo 6 caracteres'
+                        'class': 'form-control' ~ (registrationForm.plainPassword.first.vars.errors|length ? ' is-invalid' : ''),
+                        'placeholder': 'Mínimo 8 caracteres',
+                        'data-password-strength': ''
                     }
                 }) }}
-                {{ form_errors(registrationForm.plainPassword) }}
+                <div class="password-strength">
+                    <div class="password-strength-bar" id="password-strength-bar"></div>
+                </div>
+                <div class="password-hints">
+                    La contraseña debe contener al menos:<br>
+                    - 8 caracteres<br>
+                    - 1 mayúscula<br>
+                    - 1 minúscula<br>
+                    - 1 número
+                </div>
+                <div class="form-error">
+                    {{ form_errors(registrationForm.plainPassword.first) }}
+                </div>
+            </div>
+
+            <div class="form-group">
+                {{ form_label(registrationForm.plainPassword.second, null, {'label_attr': {'class': 'form-label'}}) }}
+                {{ form_widget(registrationForm.plainPassword.second, {
+                    'attr': {
+                        'class': 'form-control' ~ (registrationForm.plainPassword.second.vars.errors|length ? ' is-invalid' : ''),
+                        'placeholder': 'Repite tu contraseña',
+                    }
+                }) }}
+                <div class="form-error">
+                    {{ form_errors(registrationForm.plainPassword.second) }}
+                </div>
             </div>
 
             <div class="form-check">
-                {{ form_widget(registrationForm.agreeTerms, {'attr': {'class': 'form-check-input'}}) }}
-                {{ form_label(registrationForm.agreeTerms, 'Acepto los términos y condiciones', {'label_attr': {'class': 'form-check-label'}}) }}
-                {{ form_errors(registrationForm.agreeTerms) }}
+                {{ form_widget(registrationForm.agreeTerms, {'attr': {'class': 'form-check-input' ~ (registrationForm.agreeTerms.vars.errors|length ? ' is-invalid' : '')
+                }}) }}
+                {{ form_label(registrationForm.agreeTerms, null, {'label_attr': {'class': 'form-check-label'}}) }}
+                <div class="form-error">
+                    {{ form_errors(registrationForm.agreeTerms) }}
+                </div>
             </div>
 
             <button type="submit" class="btn btn-register">
@@ -196,4 +259,59 @@
         {{ form_end(registrationForm) }}
     </div>
 </div>
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Validación de fortaleza de contraseña en tiempo real
+            const passwordInput = document.querySelector('[data-password-strength]');
+            const strengthBar = document.getElementById('password-strength-bar');
+            
+            if (passwordInput && strengthBar) {
+                passwordInput.addEventListener('input', function() {
+                    const password = this.value;
+                    let strength = 0;
+                    
+                    // Longitud mínima
+                    if (password.length >= 8) strength += 25;
+                    
+                    // Contiene mayúsculas
+                    if (/[A-Z]/.test(password)) strength += 25;
+                    
+                    // Contiene minúsculas
+                    if (/[a-z]/.test(password)) strength += 25;
+                    
+                    // Contiene números
+                    if (/[0-9]/.test(password)) strength += 25;
+                    
+                    // Actualizar barra
+                    strengthBar.style.width = strength + '%';
+                    strengthBar.style.backgroundColor = strength < 50 ? '#dc3545' : 
+                                                       strength < 75 ? '#ffc107' : '#28a745';
+                });
+            }
+            
+            // Validación del formulario antes de enviar
+            const form = document.querySelector('.register-form');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    let isValid = true;
+                    
+                    // Validar términos
+                    const terms = form.querySelector('[name$="[agreeTerms]"]');
+                    if (!terms.checked) {
+                        isValid = false;
+                        terms.classList.add('is-invalid');
+                    }
+                    
+                    if (!isValid) {
+                        e.preventDefault();
+                        window.scrollTo({top: 0, behavior: 'smooth'});
+                    }
+                });
+            }
+        });
+    </script>
+{% endblock %}
 {% endblock %}
