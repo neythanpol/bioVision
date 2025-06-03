@@ -19,48 +19,25 @@ class HomeController extends AbstractController
     {
         $user = $this->getUser();
 
+        $fotosParaCarrusel = $this->getFotosParaCarrusel($entityManager);
+        $aveDelDia = $this->getAveDelDia($entityManager);
+
         // Para usuarios no autenticados
         if (!$user) {
-            return $this->render('home/index.html.twig', [
-                'show_auth_links' => true,
-                'meta_description' => 'Plataforma de observación y fotografía de aves. Regístrate para comenzar a documentar avistamientos.'
+            return $this->render('home/public.html.twig', [
+                'fotosParaCarrusel' => $fotosParaCarrusel,
+                'aveDelDia' => $aveDelDia,
+                'show_auth_links' => true
             ]);
         }
 
         // Para usuarios no verificados
         if (!$user->isVerified()) {
-            return $this->render('home/index.html.twig', [
-                'unverified_warning' => true,
-                'meta_description' => 'Por favor verifica tu email para acceder a todas las funciones de BioVision.'
+            return $this->render('home/unverified.html.twig', [
+                'fotosParaCarrusel' => $fotosParaCarrusel,
+                'aveDelDia' => $aveDelDia,
             ]);
         }
-
-        // Obtener las 5 fotos más votadas para el carrusel
-        $fotosMasVotadas = $entityManager->getRepository(Foto::class)
-        ->createQueryBuilder('f')
-        ->select('f', 'COUNT(v.id) as voteCount')
-        ->leftJoin('f.votos', 'v')
-        ->groupBy('f.id')
-        ->orderBy('voteCount', 'DESC')
-        ->addOrderBy('f.fechaSubida', 'DESC')
-        ->setMaxResults(5)
-        ->getQuery()
-        ->getResult();
-
-        // Extraer solo los objetos Foto del resultado
-        $fotosParaCarrusel = array_column($fotosMasVotadas, 0);
-
-        // Si no hay suficientes fotos votadas, completamos con las más recientes
-        if (count($fotosParaCarrusel) < 5) {
-            $faltantes = 5 - count($fotosParaCarrusel);
-            $fotosRecientes = $entityManager->getRepository(Foto::class)
-                ->findBy([], ['fechaSubida' => 'DESC'], $faltantes);
-            
-            $fotosParaCarrusel = array_merge($fotosParaCarrusel, $fotosRecientes);
-        }
-
-        // Obtener ave del día
-        $aveDelDia = $this->getAveDelDia($entityManager);
 
         // Obtener estadísticas del usuario
         $stats = $this->getUserStats($entityManager, $user);
@@ -80,6 +57,32 @@ class HomeController extends AbstractController
             'ultimasFotos' => $ultimasFotos,
             'articulosRecientes' => $articulosRecientes
         ]);
+    }
+
+    private function getFotosParaCarrusel(EntityManagerInterface $entityManager): array
+    {
+        $fotosMasVotadas = $entityManager->getRepository(Foto::class)
+            ->createQueryBuilder('f')
+            ->select('f', 'COUNT(v.id) as voteCount')
+            ->leftJoin('f.votos', 'v')
+            ->groupBy('f.id')
+            ->orderBy('voteCount', 'DESC')
+            ->addOrderBy('f.fechaSubida', 'DESC')
+            ->setMaxResults(5)
+            ->getQuery()
+            ->getResult();
+
+        $fotos = array_column($fotosMasVotadas, 0);
+
+        if (count($fotos) < 5) {
+            $faltantes = 5 - count($fotos);
+            $fotosRecientes = $entityManager->getRepository(Foto::class)
+                ->findBy([], ['fechaSubida' => 'DESC'], $faltantes);
+            
+            $fotos = array_merge($fotos, $fotosRecientes);
+        }
+
+        return $fotos;
     }
 
     private function getAveDelDia(EntityManagerInterface $entityManager): ?Ave
