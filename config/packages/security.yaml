@@ -41,6 +41,9 @@ security:
         - { path: ^/, roles: ROLE_USER}
         - { path: ^/votar, roles: ROLE_USER }
         - { path: ^/admin/articulos, roles: ROLE_ADMIN }
+        - { path: ^/articulos/nuevo, roles: ROLE_ADMIN }
+        - { path: ^/articulos/.+/editar, roles: ROLE_ADMIN }
+        - { path: ^/articulos/.+/eliminar, roles: ROLE_ADMIN }
 
 when@test:
     security:

@@ -5,8 +5,11 @@ namespace App\Entity;
 use App\Repository\ArticuloRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\HttpFoundation\File\File;
+use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
 #[ORM\Entity(repositoryClass: ArticuloRepository::class)]
+#[Vich\Uploadable]
 class Articulo
 {
     #[ORM\Id]
@@ -31,6 +34,23 @@ class Articulo
 
     #[ORM\ManyToOne(inversedBy: 'articulo')]
     private ?Usuario $autor = null;
+
+    #[Vich\UploadableField(mapping: 'articulo_image', fileNameProperty: 'imagen')]
+    private ?File $imagenFile = null;
+
+    public function setImagenFile(?File $imagenFile = null): void
+    {
+        $this->imagenFile = $imagenFile;
+
+        if (null !== $imagenFile) {
+            $this->fechaPublicacion = new \DateTimeImmutable();
+        }
+    }
+
+    public function getImagenFile(): ?File
+    {
+        return $this->imagenFile;
+    }
 
     public function getId(): ?int
     {

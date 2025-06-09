@@ -157,7 +157,6 @@ class Foto
     public function removeVoto(Voto $voto): static
     {
         if ($this->votos->removeElement($voto)) {
-            // set the owning side to null (unless already changed)
             if ($voto->getFoto() === $this) {
                 $voto->setFoto(null);
             }

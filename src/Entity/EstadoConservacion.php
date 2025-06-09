@@ -16,10 +16,10 @@ class EstadoConservacion
     private ?int $id = null;
 
     #[ORM\Column(length: 10)]
-    private ?string $codigo = null; // Ej: "LC", "EN", "VU"
+    private ?string $codigo = null;
 
     #[ORM\Column(length: 100)]
-    private ?string $nombre = null; // Ej: "Preocupación menor", "En peligro", "Vulnerable"
+    private ?string $nombre = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $descripcion = null;
