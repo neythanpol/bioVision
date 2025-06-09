@@ -16,4 +16,5 @@ WORKDIR /var/www/html
 COPY . .
 
 # Instalar dependencias de Symfony (sin dev)
-RUN composer install --no-dev --optimize-autoloader
+RUN git config --global --add safe.directory /var/www/html && \
+    composer install --no-dev --optimize-autoloader --ignore-platform-reqs
